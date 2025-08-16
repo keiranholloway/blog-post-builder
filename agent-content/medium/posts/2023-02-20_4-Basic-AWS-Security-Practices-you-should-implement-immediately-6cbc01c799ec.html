@@ -1,0 +1,72 @@
+<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>4 Basic AWS Security Practices you should implement immediately</title><style>
+      * {
+        font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+      h1 {
+        font-size: 50px;
+        margin-bottom: 17px;
+        color: #333;
+      }
+      h2 {
+        font-size: 24px;
+        line-height: 1.6;
+        margin: 30px 0 0 0;
+        margin-bottom: 18px;
+        margin-top: 33px;
+        color: #333;
+      }
+      h3 {
+        font-size: 30px;
+        margin: 10px 0 20px 0;
+        color: #333;
+      }
+      header {
+        width: 640px;
+        margin: auto;
+      }
+      section {
+        width: 640px;
+        margin: auto;
+      }
+      section p {
+        margin-bottom: 27px;
+        font-size: 20px;
+        line-height: 1.6;
+        color: #333;
+      }
+      section img {
+        max-width: 640px;
+      }
+      footer {
+        padding: 0 20px;
+        margin: 50px 0;
+        text-align: center;
+        font-size: 12px;
+      }
+      .aspectRatioPlaceholder {
+        max-width: auto !important;
+        max-height: auto !important;
+      }
+      .aspectRatioPlaceholder-fill {
+        padding-bottom: 0 !important;
+      }
+      header,
+      section[data-field=subtitle],
+      section[data-field=description] {
+        display: none;
+      }
+      </style></head><body><article class="h-entry">
+<header>
+<h1 class="p-name">4 Basic AWS Security Practices you should implement immediately</h1>
+</header>
+<section data-field="subtitle" class="p-summary">
+Amazon has a saying that “security is a day zero task”. This is, without a doubt, a good approach to using any cloud technology these days…
+</section>
+<section data-field="body" class="e-content">
+<section name="3c22" class="section section--body section--first section--last"><div class="section-divider"><hr class="section-divider"></div><div class="section-content"><div class="section-inner sectionLayout--insetColumn"><h3 name="6571" id="6571" class="graf graf--h3 graf--leading graf--title">4 Basic AWS Security Practices you should implement immediately</h3><figure name="f673" id="f673" class="graf graf--figure graf-after--h3"><img class="graf-image" data-image-id="1*0wGjcGX5HBBi45064qdOAA.png" data-width="321" data-height="319" data-is-featured="true" src="https://cdn-images-1.medium.com/max/800/1*0wGjcGX5HBBi45064qdOAA.png"></figure><p name="7419" id="7419" class="graf graf--p graf-after--figure">Amazon has a saying that “security is a day zero task”. This is, without a doubt, a good approach to using any cloud technology these days as security breaches are continuing to accelerate. Whilst 2023 is a mere 6 weeks in — we’ve already seen a lot of breaches (including <a href="https://techcrunch.com/2023/02/17/atlassian-and-envoy-briefly-blame-each-other-for-data-breach/" data-href="https://techcrunch.com/2023/02/17/atlassian-and-envoy-briefly-blame-each-other-for-data-breach/" class="markup--anchor markup--p-anchor" rel="noopener" target="_blank">Atlassian</a>, <a href="https://www.reddit.com/r/announcements/comments/93qnm5/we_had_a_security_incident_heres_what_you_need_to/" data-href="https://www.reddit.com/r/announcements/comments/93qnm5/we_had_a_security_incident_heres_what_you_need_to/" class="markup--anchor markup--p-anchor" rel="noopener" target="_blank">Reddit</a>, <a href="https://www.reddit.com/r/reddit/comments/10y427y/we_had_a_security_incident_heres_what_we_know/" data-href="https://www.reddit.com/r/reddit/comments/10y427y/we_had_a_security_incident_heres_what_we_know/" class="markup--anchor markup--p-anchor" rel="noopener" target="_blank">Slack</a>, and <a href="https://mashable.com/article/twitter-data-breach-elon-musk-january-2023" data-href="https://mashable.com/article/twitter-data-breach-elon-musk-january-2023" class="markup--anchor markup--p-anchor" rel="noopener" target="_blank">Twitter</a>). If this is anything to go by, compromises could be a theme of the year.</p><p name="ca51" id="ca51" class="graf graf--p graf-after--p">Security is a particularly broad topic. This document is not intended to provide a replacement for any of the really good documentation available, such as the <a href="https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html" data-href="https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html" class="markup--anchor markup--p-anchor" rel="noopener" target="_blank">AWS well architected framework (security pillar)</a>. However, it is intended to document the common pitfalls that I see on AWS accounts. If you don’t do anything else from a security point of view, please do these four things today.</p><ol class="postList"><li name="2e91" id="2e91" class="graf graf--li graf-after--p"><strong class="markup--strong markup--li-strong">Establish strong Identity and Access Management practices</strong></li></ol><p name="3bb9" id="3bb9" class="graf graf--p graf-after--li">Identity and access management forms the basis of any security approach on AWS, but it is also the one that I see missed most commonly. This is something that can be implemented by anyone, regardless of size, and it becomes harder and more expensive to correct the further you go down your cloud journey. Here are some fundamental approaches that should be used:</p><ul class="postList"><li name="1451" id="1451" class="graf graf--li graf-after--p"><strong class="markup--strong markup--li-strong">Multifactor authentication — </strong>Make sure that all accounts used by humans have multifactor authentication turned on. People losing passwords is one of the biggest reasons why accounts get breached.</li><li name="4b09" id="4b09" class="graf graf--li graf-after--li"><strong class="markup--strong markup--li-strong">Consolidated Authentication — </strong>This involves establishing a single identity for your company, ideally using a single sign-on (SSO) system and then federating or assuming an IAM role into AWS. Ideally, you should use your corporate identity, which is tied to the onboarding, offboarding, and moving processes. If SSO is not available, create user accounts in a separate ‘Identity’ AWS account, and then users can assume roles from this location to access other AWS accounts. This approach means that granting or revoking access can be done in a single location, rather than needing to remove accounts from multiple AWS accounts.</li><li name="3c9e" id="3c9e" class="graf graf--li graf-after--li"><strong class="markup--strong markup--li-strong">Principal of Least Privilege — </strong>Make sure that IAM users, roles, and groups have only the necessary permissions required to perform their roles. Avoid granting Admin access without justification. While implementing this may be time-consuming, revoking access after it has been granted is much more challenging and time-consuming.</li><li name="205c" id="205c" class="graf graf--li graf-after--li"><strong class="markup--strong markup--li-strong">Avoid using long-lived credentials where possible</strong> — This includes hard-coded values within scripts. Whenever possible, use Roles and avoid using non-expiring credentials. Consider using AWS Secrets Manager to rotate passwords within code.</li></ul><p name="e906" id="e906" class="graf graf--p graf-after--li"><strong class="markup--strong markup--p-strong">2. Eliminate any security groups allowing inbound to 0.0.0.0/0 without reason</strong></p><p name="8e0e" id="8e0e" class="graf graf--p graf-after--p">Whilst there could be reasons to allow security groups to receive traffic from anywhere (0.0.0.0/0) — this should be used sparingly and in conjunction with other controls. For example, if you are opening up an ELB to allow web-traffic then there should layer 7 inspection and filtering occuring on requests. For other services (such as SSH) then this should be never allowed. (Hint: use AWS Systems Manager for remote access to EC2 instances).</p><p name="75a8" id="75a8" class="graf graf--p graf-after--p"><strong class="markup--strong markup--p-strong">3. Turn on the Basic AWS Security Tools</strong></p><p name="9a7c" id="9a7c" class="graf graf--p graf-after--p">There are a number of AWS Security tools which can be enabled to bolster security:</p><ul class="postList"><li name="4148" id="4148" class="graf graf--li graf-after--p"><strong class="markup--strong markup--li-strong">AWS Access Analyzer</strong> — This tool scans all access patterns and can identify access patterns that should be reviewed.</li><li name="474f" id="474f" class="graf graf--li graf-after--li"><strong class="markup--strong markup--li-strong">AWS CloudTrail</strong> — Enabling this service ensures that all AWS API calls are logged into an S3 bucket. The first instance of CloudTrail is delivered for free, but you will pay for multiple deliveries, so avoid using multiple CloudTrails on a single account. This service must be enabled at an absolute minimum. Bonus points for feeding CloudTrail logs into a SIEM for event correlation and review</li><li name="0fe4" id="0fe4" class="graf graf--li graf-after--li"><strong class="markup--strong markup--li-strong">AWS GuardDuty</strong> — Reviews events such as DNS lookups, CloudTrail entries, and findings from Access Analyzer. This tool identifies potential security issues within the environment. GuardDuty should be enabled and periodically reviewed. Bonus points for setting up a CloudWatch event to notify on occasions where a new finding is identified.</li><li name="d15b" id="d15b" class="graf graf--li graf-after--li"><strong class="markup--strong markup--li-strong">AWS Security Hub — </strong>This should be used to consolidate all findings from the other key security services listed above.</li></ul><p name="37ea" id="37ea" class="graf graf--p graf-after--li">4. <strong class="markup--strong markup--p-strong">Review all S3 buckets which are public (world-readable)</strong></p><p name="1089" id="1089" class="graf graf--p graf-after--p">The most common security breach on AWS is data being placed in S3 buckets which are public and world readable. In the <a href="https://www.datocms-assets.com/75231/1675698711-state_of_the_cloud_report_2023.pdf" data-href="https://www.datocms-assets.com/75231/1675698711-state_of_the_cloud_report_2023.pdf" class="markup--anchor markup--p-anchor" rel="noopener" target="_blank">2023 State of Cloud report </a>it was identified the data within unsecured S3 buckets would be found in the matter of hours versus days. It is so common that “S3 Bucket Negligence Awards” are frequently given out in the weekly newsletter <a href="https://www.lastweekinaws.com/" data-href="https://www.lastweekinaws.com/" class="markup--anchor markup--p-anchor" rel="noopener" target="_blank">Last week in AWS</a></p><p name="1701" id="1701" class="graf graf--p graf-after--p">Obviously, this list is not comprehensive — but it does start with 4 key security practices which must be following tody as a bare minimum.</p><p name="d5a5" id="d5a5" class="graf graf--p graf-after--p">Thoughts?</p><p name="00e6" id="00e6" class="graf graf--p graf-after--p graf--trailing">Before you go — if you’ve got this far you’ve hopefully seen some value in this article. I write and publish this content free of charge. The cost for reading it though? Please like the article and click follow me — <strong class="markup--strong markup--p-strong">Think of this as a gentlemen’s agreement. The cost is nothing finacial just a token of appreciation for the time taken to put this together. Thank you.</strong></p></div></div></section>
+</section>
+<footer><p>By <a href="https://medium.com/@KeiranHolloway" class="p-author h-card">Keiran Holloway</a> on <a href="https://medium.com/p/6cbc01c799ec"><time class="dt-published" datetime="2023-02-20T10:57:34.927Z">February 20, 2023</time></a>.</p><p><a href="https://medium.com/@KeiranHolloway/4-basic-aws-security-practices-you-should-implement-immediately-6cbc01c799ec" class="p-canonical">Canonical link</a></p><p>Exported from <a href="https://medium.com">Medium</a> on August 10, 2025.</p></footer></article></body></html>

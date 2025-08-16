@@ -1,0 +1,72 @@
+<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Immutable Infrastructure should be your target operating model for servers in the cloud</title><style>
+      * {
+        font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+      h1 {
+        font-size: 50px;
+        margin-bottom: 17px;
+        color: #333;
+      }
+      h2 {
+        font-size: 24px;
+        line-height: 1.6;
+        margin: 30px 0 0 0;
+        margin-bottom: 18px;
+        margin-top: 33px;
+        color: #333;
+      }
+      h3 {
+        font-size: 30px;
+        margin: 10px 0 20px 0;
+        color: #333;
+      }
+      header {
+        width: 640px;
+        margin: auto;
+      }
+      section {
+        width: 640px;
+        margin: auto;
+      }
+      section p {
+        margin-bottom: 27px;
+        font-size: 20px;
+        line-height: 1.6;
+        color: #333;
+      }
+      section img {
+        max-width: 640px;
+      }
+      footer {
+        padding: 0 20px;
+        margin: 50px 0;
+        text-align: center;
+        font-size: 12px;
+      }
+      .aspectRatioPlaceholder {
+        max-width: auto !important;
+        max-height: auto !important;
+      }
+      .aspectRatioPlaceholder-fill {
+        padding-bottom: 0 !important;
+      }
+      header,
+      section[data-field=subtitle],
+      section[data-field=description] {
+        display: none;
+      }
+      </style></head><body><article class="h-entry">
+<header>
+<h1 class="p-name">Immutable Infrastructure should be your target operating model for servers in the cloud</h1>
+</header>
+<section data-field="subtitle" class="p-summary">
+What do I mean by immutable servers?
+</section>
+<section data-field="body" class="e-content">
+<section name="046a" class="section section--body section--first"><div class="section-divider"><hr class="section-divider"></div><div class="section-content"><div class="section-inner sectionLayout--insetColumn"><h3 name="f105" id="f105" class="graf graf--h3 graf--leading graf--title">Immutable Infrastructure should be your target operating model for servers in the cloud</h3><h4 name="41e7" id="41e7" class="graf graf--h4 graf-after--h3 graf--subtitle">What do I mean by immutable servers?</h4><p name="aa19" id="aa19" class="graf graf--p graf-after--h4">Immutable infrastructure is something which has been around for a while now. However, let’s put a bit of meat on the bones and specifically enumerate what I mean by ‘immutable servers’. Some of the key characteristics include:</p><ul class="postList"><li name="33b8" id="33b8" class="graf graf--li graf-after--p">A server is built once and it’s state or configuration does not change after it has been created. This also means persistent data cannot be stored within an Instance.</li><li name="64ce" id="64ce" class="graf graf--li graf-after--li">Instead of making updates or modifications to an existing server the current instance is destroyed and recreated with the new configuration.</li><li name="5600" id="5600" class="graf graf--li graf-after--li">The configuration of a server image is version controlled and stored within a central repository using Infrastructure as code (IaC).</li><li name="f202" id="f202" class="graf graf--li graf-after--li">Deployment of servers is automated and repeatable. There should be no human intervention required in the deployment process.</li><li name="dc97" id="dc97" class="graf graf--li graf-after--li">Servers are considered as disposable. They should be easily replaced and this should happen frequently.</li><li name="6b6e" id="6b6e" class="graf graf--li graf-after--li">There should be no need to sign into a server instance. Logging should be centralized and ‘break-glass’ access should only be used in actual emergencies.</li></ul><h4 name="5d4f" id="5d4f" class="graf graf--h4 graf-after--li">What benefits does it give you?</h4><p name="8936" id="8936" class="graf graf--p graf-after--h4">There are various benefits that this will give you including:</p><ul class="postList"><li name="dcfa" id="dcfa" class="graf graf--li graf-after--p">Providing better reliability, consistency and scalability within the cloud.</li><li name="3dca" id="3dca" class="graf graf--li graf-after--li">Allows for better deployment practices. For example, blue/green deployment or canary patterns. No in-between state whilst updates are being applied</li><li name="6ab6" id="6ab6" class="graf graf--li graf-after--li">Enhance security. As server instances are not accessed by humans it bolsters the security of a given instance environment. Given the increased consistency you reduce the level of entropy being introduced into your environment.</li><li name="92b2" id="92b2" class="graf graf--li graf-after--li">Provides the ability to deploy new environments quickly and repeatably.</li><li name="cefb" id="cefb" class="graf graf--li graf-after--li">Creates known good deployment patters and enforces consistency across the fleet. Avoids the dreaded configuration drift.</li><li name="07c5" id="07c5" class="graf graf--li graf-after--li">Establishes a rollback process — if you make configuration changes which have adverse affect you can trivially rollback to a previous version</li><li name="6992" id="6992" class="graf graf--li graf-after--li">Encourages experimentation. Given you can build up test/dev environments which will identically mirror production you can experiment safely.</li><li name="9f3f" id="9f3f" class="graf graf--li graf-after--li">Avoids long-running instances which can get abandoned and/or forgotten about. This can introduce security concerns and unnecesary spend.</li></ul><h4 name="cd6c" id="cd6c" class="graf graf--h4 graf-after--li">How can this be implemented?</h4><p name="ce24" id="ce24" class="graf graf--p graf-after--h4">There are a number of patterns in which this can be implemented. The practice which I have the most experience establishes a CI/CD pattern for building and deploying a ‘golden AMI’. For this example, we will look specifically at how this can be done within AWS.</p><p name="c91c" id="c91c" class="graf graf--p graf-after--p">The high-level design for this approach looks along the following lines:</p><figure name="f006" id="f006" class="graf graf--figure graf-after--p"><img class="graf-image" data-image-id="0*_paQ1gEWwrbRDONP" data-width="1300" data-height="1020" data-is-featured="true" src="https://cdn-images-1.medium.com/max/800/0*_paQ1gEWwrbRDONP"></figure><p name="dc56" id="dc56" class="graf graf--p graf-after--figure">The more detailed breakdown:</p><ol class="postList"><li name="084d" id="084d" class="graf graf--li graf-after--p">All of your configuration including the IaC code, packer configuration and other dependencies (for example, ansible) are stored within a centralized code repository.</li><li name="38fa" id="38fa" class="graf graf--li graf-after--li">A jenkins job is trigger when all code is merged which results in the the configuration being pulled and a packer job being initiated.</li><li name="0d8c" id="0d8c" class="graf graf--li graf-after--li">Packer will create the golden AMI within AWS which can be used for future deployments.</li><li name="1e4e" id="1e4e" class="graf graf--li graf-after--li">A second jenkins job will then triggered to run the terraform to update the launch templates and an ASG upgrade will be triggered to replace all EC2 instances.</li></ol><p name="69ff" id="69ff" class="graf graf--p graf-after--li">This mechanism ensures that all instances are now running the latest AMIs which have been created in a consistent fashion.</p><p name="e1b3" id="e1b3" class="graf graf--p graf-after--p">It is worthwhile noting that this is particularly high-level and this flow is quite extensible.</p><h4 name="082e" id="082e" class="graf graf--h4 graf-after--p">Extending on this concept…</h4><ul class="postList"><li name="fad9" id="fad9" class="graf graf--li graf-after--h4">As mentioned above, you can have any number of dependencies added to the repo. For example, you can use tools like Ansible to create more configuration within the EC2 instances. This can include things like hardening the Operating System, installing additional agents, scanning for vulnerabilities and ensuring all Operating system updates are applied at build time.</li><li name="504c" id="504c" class="graf graf--li graf-after--li">Adding detection mechanisms to identify non-compliance EC2 instances can be done through AWS config (or EventBridge etc). For example:</li></ul><figure name="d14c" id="d14c" class="graf graf--figure graf-after--li"><img class="graf-image" data-image-id="1*zZUfOK1s4r51EzfkknLExA.png" data-width="818" data-height="223" src="https://cdn-images-1.medium.com/max/800/1*zZUfOK1s4r51EzfkknLExA.png"></figure><ul class="postList"><li name="43a0" id="43a0" class="graf graf--li graf-after--figure">Consideration needs to be given to any long-running instances sitting outside EC2 instances. My favourite approach for this is to change thinking and accept everything should be immutable. This means moving state and any persistent data out of the instances and into better suited data-stores (or, worst-case, use EFS).</li><li name="e158" id="e158" class="graf graf--li graf-after--li">Additional policies can be added to enforce more compliance. For example, if an EC2 instance is running for more than 30 days then another Jenkins job could be triggered to rebuild the AMI and recycle the ASG to ensure that stage instances are being terminated.</li><li name="cb5b" id="cb5b" class="graf graf--li graf-after--li graf--trailing">Logging needs to be centralized and remove it from the Operating System local disks.</li></ul></div></div></section><section name="ae1e" class="section section--body section--last"><div class="section-divider"><hr class="section-divider"></div><div class="section-content"><div class="section-inner sectionLayout--insetColumn"><p name="629e" id="629e" class="graf graf--p graf--leading graf--trailing">Before you go — if you’ve got this far you’ve hopefully seen some value in this article. I write and publish this content free of charge. The cost for reading it though? <strong class="markup--strong markup--p-strong">Please clap the article and click follow me</strong> — <strong class="markup--strong markup--p-strong">Think of this as a gentlemen’s agreement. The cost is nothing financial just a token of appreciation for the time taken to put this together. Thank you</strong></p></div></div></section>
+</section>
+<footer><p>By <a href="https://medium.com/@KeiranHolloway" class="p-author h-card">Keiran Holloway</a> on <a href="https://medium.com/p/f28258444f00"><time class="dt-published" datetime="2023-04-17T14:11:35.183Z">April 17, 2023</time></a>.</p><p><a href="https://medium.com/@KeiranHolloway/immutable-infrastructure-should-be-your-target-operating-model-for-servers-in-the-cloud-f28258444f00" class="p-canonical">Canonical link</a></p><p>Exported from <a href="https://medium.com">Medium</a> on August 10, 2025.</p></footer></article></body></html>

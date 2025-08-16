@@ -1,0 +1,642 @@
+Keiran Holloway
+Keiran Holloway
+Head of Elastic Engineering+ Delivery (Public Clouds) - EMEA
+Rackspace Technology
+As a seasoned technical professional with over 25 years of experience, Keiran Holloway has worked with both public and private cloud infrastructures for high-profile public-facing engagements. His focus is to help businesses get the most out of today's technologies. He is comfortable discussing the latest tech trends as well as relevant business challenges in the market.
+
+Currently, he is responsible for running and scaling Elastic Engineering+ in the EMEA region. The practice delivers public cloud solutions to businesses using the best-of-breed cloud-native approaches. By building DevOps teams that closely align with customers, they gain an in-depth understanding of their business requirements, challenges, and aspirations to ensure that solutions align with their strategy. 
+
+His expertise extends across various technical domains, including solution architecture, cloud-native approaches, DevOps, transformation, containerization, serverless and security. Additionally, he has experience coaching and mentoring technical individuals, as well as helping customers with cultural transition, operating models, and governance frameworks.
+
+How to Prepare Your Team to Leverage Cloud Operating Models
+Gain clarity around cloud operating models, including the common features of a model, its layers of functionality, and the keys to deploying a successful operating model.
+
+Keiran Holloway / Rackspace Technology May 1, 2023
+Cloud operating models are essential elements in a successful cloud environment. They are so important, I'd argue, that they can often stand between you and your enterprise’s ability to successfully adopt a public cloud. This is one of the areas of IT that is often difficult to define and contextualize. This article intends to bring some clarity around cloud operating models, including the features of a successful model, its layers of functionality and the keys to building a successful cloud operating model.
+
+ 
+
+Let’s start with the features of a successful operating model. They include:
+
+Democratizing technology via cloud native and bringing it closer to the end users.
+Gaining agility and the ability to run fast.
+Eliminating duplication while enabling economies of scale.
+Providing clarity around the lines of demarcation between various functions within the cloud environment.
+Providing communications paths between various functions (adding more functions is great, but there is a tradeoff between specialization and efficiency).
+ 
+
+Contextualizing an effective operating model
+
+You can break down the average cloud stack of an enterprise into three layers, including:
+
+ 
+
+Application layer: This is where your application or business logic lives. It’s effectively the platform on which your end users consume your services. 
+Shared services layer: This is made up of various components, depending on the technologies adopted by your company. Technologies that commonly sit in the shared service layer include your container orchestration mechanisms (e.g., Kubernetes® clusters), shared messaging buses (e.g., Apache Kafka or Amazon Simple Queue Service), cloud identity and access management patterns (e.g., AWS Single Sign-On), and networking landing zones.
+Infrastructure layer: While there should be a bias toward using shared service platforms where possible, there will be occasions where bespoke deployments are needed, such as running an off-the-shelf product within an Amazon EC2 instance. Infrastructure that sits outside this shared services layer will commonly fall into the infrastructure layer.
+ 
+
+Within each of these three layers, there are two functions:
+
+Building and deploying: The layers should be producing standard deployment patterns. For example, using standard CI/CD pipelines and deploying applications.
+Ongoing operations: This is known as the “feeding and watering” of infrastructure to ensure that it is being operated in an effective, secure and efficient fashion.
+ 
+
+Below is a visual depiction of how these functions could be structured.
+
+Cloud Operating Models
+ 
+
+As shown above, an operating model delivers six separate functions (the yellow boxes) within your cloud environment. Depending on your organization, you could have six separate teams or use a small number of teams and overlap functions. For example, the team building the applications could also be the people responsible for the watering and feeding of the application. This could include things like monitoring the application availability 24x7x365, as well as being responsible for code updates and release application changes. Alternatively, you could split these actions into separate teams and functions.  
+
+ 
+
+Keys to building a successful cloud operating model
+
+The right skillset: Ensure you have all the functions covered in the image above and your team possesses the right skillsets. An anti-pattern that we have seen is having infrastructure teams on call for the application. But that rarely yields outcomes much better than simply restarting the application. This means the root cause is never particularly well understood.
+Fill skill gaps: Document which teams exist and who makes up the teams. It is common to see gaps within the operating model when walking through the actual teams and individuals who fulfill each function. Plugging any gaps is a quick way to improve your cloud operating approach.
+Function agreement: Agree on where the lines of demarcation exist within your organization between these functions.
+Streamline teamwork: Understand and record how the teams interact. Frequently, we see different teams using different IT service management (ITSM) tools, languages or terminology. This creates chaotic interactions and should be avoided.
+Embrace cloud native: For example, go serverless to eliminate any heavy lifting on your end.
+ 
+
+This can seem like a daunting journey. Defining one’s own processes and organizational structure is often harder than anyone expects. Then there are the numerous cloud service providers from which to choose. Will you self manage and try to DIY or bring in hired hands to help guide the way? There is no ideal one-size-fits-all approach. IT environments are complex, business requirements rapidly shift and few of us have guaranteed budgets. Trust me when I say, take your time, do your research — and please don’t just move your existing problems to the cloud.
+
+ 
+
+Join the Conversation: Find Solve on Twitter and LinkedIn, or follow along via RSS.
+
+Stay on top of what's next in technology
+Learn about tech trends, innovations and how technologists are working today.
+
+
+Platform Engineering: Revolutionizing Development Processes with the Adoption of Backstage
+March 19, 2024
+
+by Keiran Holloway, Senior Manager, Professional Services Delivery, Rackspace Technology
+
+Introduction
+
+Rackspace Technology has adopted Backstage to help customers establish an internal development platform (IDP). This proves immensely valuable as it creates a portal comprising a portfolio of deployment templates, which development teams can use to quickly – and securely – deploy cloud infrastructure.
+
+Backstage.io, developed by Spotify, has emerged as a powerful platform for building developer portals. It simplifies developer workflows, centralizes infrastructure tooling and enhances productivity across teams. For developers new to Backstage.io, this guide will walk you through setting up and leveraging its capabilities to streamline your development processes.
+
+The obvious starting point for adopting this tool within your organization is to deploy the open-source software. However, this is the easy part – driving the adoption of a platform like Backstage can often become a bit of a chicken-and-egg problem. Developers may be wary of this tool – and out of the box, it provides limited functionality – so how do you drive adoption within your organization?
+
+The following aspects are considered key tenets to driving adoption:
+
+1. Setting up a solid development environment: making it repeatable for onboarding new engineers
+
+Why it's important: Consistency and repeatability in the development environment are crucial for minimizing setup times and avoiding the "it works on my machine" syndrome, especially when onboarding new engineers. Backstage, with its multiple components and somewhat steep learning curve, underscores this need. Adopting the following approaches can facilitate this process:
+
+Automate setup processes: Backstage is all about automating workflows and deployment practices. The first template you create should enable quicker developer onboarding. Rackspace offers multiple templates allowing for the rapid deployment of either a local developer environment or a test environment on AWS, GCP, or Azure. This process, taking less than 10 minutes, significantly lowers the barriers to entry.
+Document everything: It's essential to document every step of the setup process clearly. This documentation should be easily accessible to new engineers, ideally within your Backstage.io portal.
+Establish a backlog: The first item on this backlog for the engineers will be to onboard themselves. Make sure that they’re getting into the flow of using the tooling that you will be developing.
+Schedule frequent meetings and cohesive support:  When adopting Backstage, everyone is generally in the same boat and learning together. Having common Slack/Teams channels has been invaluable for quickly removing roadblocks. As engineers onboard, holding demo sessions also helps drive adoption, answer questions and get everyone off to a running start.
+2. Laying the correct foundations: user authentication and integration with existing directories
+
+Why it's important: Proper authentication mechanisms are crucial to ensure that the onboarding of engineers is consistent and that services are accessed securely.
+
+How to achieve it:
+
+Choose the right authentication approach: Backstage supports various authentication providers (e.g., OAuth, SAML, LDAP). Assess your existing infrastructure to select the most suitable authentication method.
+Integrate with existing directories: If your organization uses Active Directory or another directory service, integrate it with Backstage to manage user access and permissions seamlessly. This also helps maintain compliance with your leavers, joiners, and movers policy.
+3. Backstage integration mechanisms
+
+Why it's important: Backstage and your CI/CD pipeline tools need to work seamlessly together. Clunky integration can quickly diminish developers' interest.
+
+How to achieve It:
+
+Ensure you're using OAuth applications: Backstage can integrate with platforms like GitHub. Setting up OAuth from the outset significantly eases this process.
+Understand your integration patterns with cloud service providers: You'll need mechanisms to deploy resources within your cloud. Techniques similar to OIDC should be defined and implemented to drive meaningful adoption.
+Documentation: Documenting these flows and processes is crucial. Without clear documentation, developers are almost certain to encounter obstacles, negatively impacting adoption.
+4. Key components of Backstage
+
+Understanding the key components of Backstage is imperative to getting started. Familiarize yourself with all of the following: Software Catalog, Tech Docs and Scaffolder Templates.
+
+Software catalog: At the heart of Backstage is the Software Catalog, a centralized system for tracking and organizing software components across your organization. It provides visibility into what exists, how it's maintained and who owns it.
+Tech docs: Backstage integrates technical documentation directly into the developer portal. By using Tech Docs, teams can create, store and access documentation alongside their code, ensuring that it is always up-to-date and accessible.
+Scaffolder templates: These templates enable teams to quickly spin up new projects by providing predefined templates for common types of software projects. This standardizes project setups and reduces the time spent on boilerplate code.
+5. Understanding key concepts: templates, plugins and actions
+
+Templates: In Backstage, templates serve as blueprints for creating new components like services, libraries, or websites. They outline the scaffolding process, detailing which files to create and which parameters to configure.
+
+Examples:
+
+A Node.js service template that sets up a basic REST API project.
+A documentation template for creating a Tech Docs site.
+Plugins: Plugins extend Backstage's functionality, allowing you to integrate third-party services, tools and custom functionalities into your developer portal.
+
+Examples:
+
+A CI/CD plugin for integrating with Jenkins or CircleCI to view build statuses directly in Backstage.
+An incident management plugin for integrating with PagerDuty or Opsgenie.
+Actions: Actions are the operations performed by the scaffolder when creating a new component from a template. They can include creating new repositories, adding files, and configuring services.
+
+Examples:
+
+An action that initializes a Git repository with a README and LICENSE file.
+An action that sets up a Kubernetes deployment for a new service.
+Empower your development journey with Backstage.io
+
+Backstage.io stands out as a formidable platform for boosting developer productivity and operational efficiency. By establishing a robust development environment, laying strong foundations, grasping its key components, and skillfully utilizing templates, plugins, and actions, you have the power to markedly improve your development workflow. This guide serves as a primer to kickstart your journey with Backstage.io. As you delve deeper into its features and capabilities, you will uncover numerous opportunities to tailor and refine your development practices.
+
+Conclusion
+
+Rackspace Technology brings a wealth of experience, not only in adopting these technologies but also in ensuring their success within your organization.
+
+Learn how to empower innovation and growth by signing up to the Platform Engineering Ideation Workshop →
+
+Note: This offer is currently delivered from our EMEA-based professional services team only.
+
+ 
+Is work-in-progress slowing you down? Here’s how platform engineering can help.
+July 2, 2024
+
+by Keiran Holloway, Senior Technical Manager, Rackspace Technology
+
+Introduction
+
+If you’re operating in the cloud today, you’re probably well aware of the complexities involved in operating and managing in cloud environments. One of the significant challenges you’ll face is the impact of work-in-progress (WIP) on your business's agility and efficiency. Let's dive into why WIP is a problem and explore how you can overcome them and streamline your cloud operations.
+
+Challenges of WIP in Cloud Operations
+
+When operating in the cloud, every new provisioning task often involves a cumbersome design and request process. For example, imagine you need to deploy a Python microservice backed by a database. In businesses with multiple teams, the workflow might look something long like this — just for the database creation:
+
+WIP slowdown pic 1
+
+This multi-step process requires human intervention at every stage and leads to requests languishing in ticket queues, waiting to be actioned. This situation creates significant delays, hindering your business's ability to move quickly and respond to immediate market demands.
+
+Result: We’ve seen the above flow take over seven working days to complete!
+
+The solution: Platform Engineering
+
+To combat the inefficiencies caused by WIP, consider building a dedicated platform engineering team. This team focuses on creating self-service platforms and reusable components, significantly reducing the need for repetitive manual tasks.
+
+The power of Spotify Backstage
+
+One powerful tool for enabling platform engineering is Backstage, an open-source platform developed by Spotify. Backstage provides a framework for building templates that make software development self-service and reusable. By adopting Backstage, you can achieve:
+
+Economies of speed: Streamline your provisioning process by making it self-service, allowing your development teams to move faster without waiting for tickets to be processed.
+Reduced WIP: Minimize the number of tasks stuck in progress by automating common requests and provisioning steps.
+Enhanced collaboration: Through standardized templates and processes, foster better collaboration between development, security, and operations teams.
+Result: By using Backstage with a dedicated platform engineering team, we’ve seen the above flow reduced from seven days to 30 minutes.
+
+Benefits of adopting a platform engineering approach
+
+Increased agility: Enable your teams to deploy and iterate faster, reducing time-to-market for new features and services.
+Scalability: Easily scale your operations with reusable templates and automated processes.
+Improved developer experience: Provide your developers with the tools they need to be productive without the overhead of navigating complex request systems.
+Let's speed up your cloud operations
+
+By focusing on platform engineering and leveraging tools like Backstage, you can overcome the bottlenecks caused by WIP and transform your cloud operations. If you're ready to speed up your product and engineering teams, let's connect. We have a wealth of experience working with development teams — and can help your organization unlock the full potential of your cloud infrastructure. 
+
+
+How to Prepare Your Team to Leverage Cloud Operating Models
+July 19, 2023
+
+by Keiran Holloway, Senior Technical Manager, Rackspace Technology, And Sriram Rajan, Senior Principal Architect, Rackspace Technology
+
+
+
+
+
+
+Meeting
+A red image with text "Subscribe to the Rackspace Insights Newsletter" with a "Subscribe now" button. A mail icon is positioned to the right of the text.
+Recent Posts
+EHR Cloud Hosting and Migration Insights for Healthcare IT Leaders
+August 13th, 2025
+
+The Public Cloud Imperative for 2025 and Beyond
+August 12th, 2025
+
+Continuing Success with VMware: How Rackspace Supports Customers and Partners
+August 8th, 2025
+
+Continuing Success with VMware: How Rackspace Supports Customers and Partners
+August 8th, 2025
+
+AI and Automation Are Rewriting the Cloud Playbook
+August 7th, 2025
+
+In this post, Rackspace Technology executives help you get clear understanding of cloud operating models, their features, layers of functionality and they discuss the keys necessary for successful cloud deployment and operation.
+
+ 
+
+Cloud operating models are essential elements in a successful cloud environment.  At Rackspace Technology®, where we have managed cloud environments for many years, we often conclude that  they can stand between you and your enterprise’s ability to successfully adopt a public cloud. This is one of the areas of IT that can be difficult to define and contextualize. In this post, we aim to explain cloud operating models, as well as the features and keys to building a successful cloud operating model.
+
+Let’s start with the features of a successful operating model. They include:
+
+Democratizing technology via cloud native and bringing it closer to the end users
+Gaining agility and the ability to make changes fast
+Eliminating duplication while enabling economies of scale
+Establishing the lines of demarcation between various functions within the cloud environment
+Providing communications paths between various functions (adding more functions is excellent, but there is a trade-off between specialization and efficiency)
+Contextualizing an effective operating model
+
+You can break down the average cloud stack of an enterprise into three layers: applications, shared services and infrastructure.
+
+Application layer: This is where your application or business logic lives. It’s effectively the platform on which your end users consume your services. 
+Shared services layer: This comprises various components, depending on the technologies adopted by your company. Technologies that commonly sit in the shared service layer include your container orchestration mechanisms (e.g., Kubernetes® clusters), shared messaging buses (e.g., Apache Kafka or Google Cloud Pub/Sub), Cloud IAM patterns and networking constructs like network peering and landing zones.
+Infrastructure layer: While there should be a bias toward using shared service platforms where possible, there will be occasions where bespoke deployments are needed, such as running a marketplace product within a Google Compute Engine instance. Infrastructure that sits outside this shared services layer will commonly fall into the infrastructure layer.
+Within each of these three layers, there are two functions:
+
+Building and deploying: The layers should be producing standard deployment patterns. For example, using standard CI/CD pipelines and deploying applications.
+Ongoing operations: This is known as the “feeding and watering” of infrastructure to help ensure that it is operating in an effective, secure and efficient fashion.
+Here is a visual depiction of how these functions could be structured.
+
+As shown in the gray boxes above, an operating model accounts six separate functions within your cloud environment. Depending on your organization, you might need six different teams (one for each function), or use a smaller number of teams with overlapping functions. For example, the team that builds applications could also be responsible for watering and feeding the application. This could include, for example, 24x7x365 monitoring of application availability and responsibility for code updates and release application changes. Alternatively, you could split these actions into separate teams and functions.
+
+Google Cloud offers interesting constructs that help build the above functions using key infrastructure services. For example, you can create a shared network (virtual private cloud) that’s managed by your shared operations team but used by your application operations team. Google Cloud projects enable the operations teams to centralize monitoring, group runbooks and notification processes in one place, then manage them effectively. You can also employ a library of Google deployments using Terraform infrastructure as code as the foundation for custom deployments.
+
+Keys to building a cloud operating model:
+
+Assemble the right skills: Ensure you have all the functions covered in the image above and your team is properly skilled. An anti-pattern that we have seen is having infrastructure teams on call for the application. But that rarely yields outcomes much better than simply restarting the application. This means the root cause is never particularly well understood.
+Fill skill gaps: Document the makeup of each team. It is common to see gaps within the operating model when walking through the actual teams and individuals who fulfill each function. Identifying and filling any gaps is a quick way to improve your cloud operating approach.
+Align functions: Establish boundaries between these functions and the responsibilities of team members within each group.
+Streamline teamwork: Understand and record how the teams interact. Frequently, we see different teams using different IT service management (ITSM) tools, languages or terminology. This can create chaotic interactions and should be avoided.
+Embrace cloud native: For example, go serverless to eliminate any heavy lifting on your end.  Even if you cannot go fully serverless, embrace containers using Google Kubernetes Engine or standard Google Compute engine patterns can help.
+The creation of cloud operating models can be a daunting task. Defining one’s own processes and organizational structure is often harder than anyone expects. Then there are the numerous cloud service providers from which to choose. Will you self-manage, try DIY or bring in hired hands to help guide the way? There is no ideal universal approach. IT environments are complex, business requirements rapidly shift, and few of us have guaranteed budgets. Trust us, take your time, do your research — and please don’t just move your existing problems to the cloud.
+
+Tags: 
+Public Cloud
+ 
+Cloud Insights
+
+Focusing on just cost optimization? You’ve already wasted money.
+May 26, 2020
+
+Keiran Holloway
+
+
+
+
+
+
+A man working at his desk.
+A red image with text "Subscribe to the Rackspace Insights Newsletter" with a "Subscribe now" button. A mail icon is positioned to the right of the text.
+Recent Posts
+EHR Cloud Hosting and Migration Insights for Healthcare IT Leaders
+August 13th, 2025
+
+The Public Cloud Imperative for 2025 and Beyond
+August 12th, 2025
+
+Continuing Success with VMware: How Rackspace Supports Customers and Partners
+August 8th, 2025
+
+Continuing Success with VMware: How Rackspace Supports Customers and Partners
+August 8th, 2025
+
+AI and Automation Are Rewriting the Cloud Playbook
+August 7th, 2025
+
+Reducing costs is just part of the equation. For lasting cost savings, you need a cloud governance framework.
+
+Everyone’s looking to reduce costs, especially in today’s economic climate. And considering that around 70% of companies are overspending on public cloud, it’s smart to pay close attention to where the money is going.
+
+But reducing costs in the short term is just part of the equation. For more-significant cost savings and lasting cost control, you need to examine how your whole organization consumes its IT resources. This is where cost governance comes in.
+
+Cost optimization vs. cost governance
+
+Unlike cost optimization’s crash-diet approach — where you achieve rapid short-term wins but struggle to maintain them — cost governance involves long-term lifestyle changes around cloud consumption. It’s a regimented process that still generates rapid results, but with an added focus on continual improvements.
+
+Start building your cost governance framework
+
+How will you tackle cloud costs for the long haul? We recommend the following cost governance processes as a great place to start.
+
+Establish a cross-functional cost governance board
+Build a team from various parts of the business including finance, IT operations, security and compliance as well as application owners and appoint a C-level leader as the team sponsor. Assigning a senior leader to sponsor this team helps to clear potential roadblocks and allows for quicker decision making. This leader should hold the team accountable to the cloud budget goals within the organization.
+Meet frequently
+Your cost governance board should meet weekly at first, to generate momentum. Virtual meetings are acceptable, of course, as long as you follow a clear agenda and maintain good attendance. The cadence can be changed to twice-a-month or monthly once the team is established.
+Define spend targets for the cloud
+The cost governance board’s finance representative can set expectations around budgets and define key metrics for cost savings goals. They can also address issues like contract terms and how much the business can invest upfront to reduce operational expenditures. The board should look to set realistic budgets for the next financial reporting period. Also, try to avoid vendor lock-in, which can derail your savings efforts.
+Review wasteful spending and execute quick wins
+The first starting point around cost savings should be looking at quick wins — such as eliminating unused, overallocated or misconfigured resources. Your engagement with experienced cloud operators can rapidly accelerate this phase. Longer-term cost optimization can be established by careful evaluation of your application architectures.
+Introduce processes and policies to prevent runaway costs
+Once the initial cost savings measures have been implemented, the next step is to create enforcement policies around cloud cost, usage, security and governance. With third-party tools, you can easily stay on top of these policies and be alerted to any violations. One such tool is CloudHealth by VMware, which is included in Rackspace Platform Essentials.
+Accelerate cost governance through expert guidance
+
+What’s your cost governance plan? The experts at Rackspace can help you every step of the way, with our comprehensive cost governance services. From reviewing your IT inventory to remediation, detailed billing reports, cost tagging and budget threshold status reports, we can give you the insight you need to optimize your cloud spend.  
+
+Whether you run on AWS, Microsoft® Azure® or Google Cloud Platform™, we have the platform-certified experts on hand to help you make the most of the cloud. Get started today by learning more about our cost governance services. 
+
+
+Why Your Enterprise Needs to be Thinking About Platform Engineering
+April 18, 2024
+
+by Keiran Holloway, Senior Manager, Professional Services Delivery, Rackspace Technology
+
+Introduction
+Platform engineering is a term that is being embraced by companies looking to adopt the cloud quicker and in a more consistent fashion, and for good reason. As businesses continue to evolve in the digital age, the way we approach the development and management of technology platforms is also undergoing a significant transformation.
+
+The crux of platform engineering lies in its aim to create a comprehensive, streamlined, and highly efficient environment for software development and operations. This approach prioritizes automation, integration, and continuous delivery, allowing for rapid scaling and ensuring that infrastructure can keep pace with the ever-increasing demands of business and technology.
+
+From past to present: the evolution of infrastructure
+platform engineering pic 1
+The table outlines a clear progression from a past dominated by dedicated infrastructures and manual deployment mechanisms to a present where cloud services, infrastructure as code (IaC), and CI/CD pipelines are becoming the norm.
+
+Infrastructure 
+In the past, infrastructure was often dedicated and static, requiring significant capital expenditure and long lead times to scale or change. In contrast, the present has embraced cloud-based models that combine traditional service-based approaches with cloud-native solutions, offering more flexibility and agility.
+
+Deployment mechanism
+Deployment mechanisms have evolved from manual processes, which are slow and error-prone, to IaC and CI/CD pipelines. These automated pipelines not only accelerate deployment but also ensure that the same procedures are applied across all environments, greatly reducing the chance of human error and inconsistencies.
+
+Architecture patterns
+The transition from monolithic to microservices architecture is perhaps one of the most profound shifts in platform engineering. Monolithic architectures, which bundle all services into a single, indivisible unit, are giving way to microservices, which break down applications into smaller, interconnected services. This modularity allows for easier updates, quicker deployments, and a more resilient system overall.
+
+Complexity
+As we embrace these new technologies, the complexity of managing them inevitably increases. However, this complexity brings with it a higher degree of control and optimization, allowing organizations to create more sophisticated, responsive platforms
+
+Provisioning lead time and deployment frequency
+There has been a dramatic reduction in provisioning lead time — from weeks or months to days, or even on-demand. Deployment frequency has undergone a similar revolution, moving from weeks or months to daily deployments, allowing businesses to respond to market changes and customer feedback with unprecedented speed
+
+Change failure rate and business relevance
+The change failure rate has significantly decreased from over 60% in the past to 15-25% today, thanks to automated testing and deployment strategies. As a result, the relevance of business technology has shifted from merely supporting business processes to being core to the business itself.
+
+The future of platform engineering
+Looking forward, the table suggests a future with a bias toward a cloud-native approach. This indicates a preference for technologies that are specifically designed for cloud environments, which offer even greater scalability, resilience, and efficiency.
+
+Revolutionizing infrastructure management
+Platform engineering is not just about adopting new technologies; it's about a fundamental shift in how businesses view and manage their infrastructure. By adopting platform engineering practices, businesses can enjoy:
+
+Faster time to market: Automated pipelines and on-demand resources enable businesses to move from concept to production more quickly.
+Increased efficiency: Resources can be provisioned and scaled as needed, reducing waste and cost.
+Higher reliability: Cloud-native solutions and microservices architectures enhance the resilience and availability of applications.
+Improved security: Consistent deployment mechanisms and infrastructure as code helps maintain security standards across the board.
+As we navigate this landscape, it's evident that platform engineering is revolutionizing infrastructure management. It is not merely a trend but a paradigm shift that is redefining the very fabric of technology within businesses, setting a new benchmark for innovation, agility, and operational excellence.
+
+Re-thinking the operating model with platform engineering
+The adaptation of new technologies is a pivotal moment for rethinking operating models, particularly within the domain of cloud computing and platform engineering. Companies eager to reap the benefits of the cloud paradigm often establish a cloud center of excellence (CCoE) or cloud hub to centralize expertise and governance. However, this centralized function, while beneficial in some respects, brings with it a set of challenges that organizations must navigate to remain agile and efficient.
+
+Centralized IT service/cloud hub as a bottleneck
+The centralized cloud hub or cloud center of excellence (CCOE) has emerged as a pivotal structure within modern IT organizations. It's designed to guide and govern cloud adoption and operations. However, as the bridge between a wide array of tools and the developers who use them, this centralized function can quickly become overwhelmed, acting as a bottleneck in the flow of operations. This is especially true when there's a surge in demand for new services or when rapid feature enhancements are released by cloud providers.
+
+platform engineering pic 2
+
+Embracing platform engineering principles 
+Self-Service Tools
+Self-service tools like Backstage are a foundational tenet of platform engineering. They empower developers by providing a user-friendly interface where they can access the entire ecosystem of tools and services without direct intervention from the central IT team. This not only accelerates development workflows but also alleviates bottlenecks caused by centralized control points.
+
+Democratization of technology
+The philosophy of technology democratization is about making tools and infrastructure accessible and user-friendly for all developers, regardless of their expertise. This involves providing sensible defaults that guide developers towards best practices while offering the flexibility to customize and scale as needed. The goal is to enable teams to make the most of technology with minimal friction, fostering innovation and agility.
+
+Governance with security
+A shift to platform engineering does not diminish the importance of governance and security; instead, it embeds these considerations into the implementation process itself. The platform should be designed to enforce policies, manage permissions and control access seamlessly. By building governance into the platform, organizations ensure that compliance is maintained without impeding the speed of development.
+
+Workload observability
+Intrinsic workload observability is another critical aspect of platform engineering. Observability should be baked into the platform from the outset, offering developers real-time insights into their applications and services. This allows for proactive monitoring, efficient troubleshooting and informed decision-making, contributing to the reliability and performance of the entire system.
+
+By focusing on these platform engineering principles, organizations can create a robust framework that supports the rapid pace of cloud innovation while maintaining the necessary guardrails for security and compliance. This approach facilitates a dynamic and responsive IT environment that aligns with the evolving needs of developers and the business.
+
+Take the next steps with platform engineering
+Platform engineering offers a blueprint for organizations looking to modernize their IT infrastructure. These principles closely align with the needs of the developer and broader organization. As cloud technologies advance at a rapid pace, your business must adapt as well. Rackspace can help — speak to us about an ideation workshop focused on how to adopt platform engineering within your organization.
+
+
+Bootstrapping AWS Accounts for Seamless Backstage.io Integration
+March 30, 2024
+
+by Keiran Holloway, Senior Technical Manager - EMEA Professional Services, Rackspace Technology
+
+Introduction
+
+Embarking on the Backstage.io platform journey introduces several initial challenges, notably, establishing an interaction mechanism with your cloud service provider. This post will shed light on the approach Rackspace Technology uses to seamlessly integrate Amazon Web Services (AWS) accounts with Backstage, a cornerstone for enabling a smooth and efficient development workflow.
+
+Our objective
+
+Our goal is straightforward, yet vital:
+
+Enable Backstage and CI/CD pipelines to interact with AWS services.
+Ensure services are discoverable within Backstage.
+Maintain simplicity and efficiency, minimizing input for maximum output.
+This endeavor led to the creation of one of our initial Backstage templates, designed to facilitate platform adoption and simplify cloud interactions.
+
+Our approach
+
+While there are numerous potential strategies for integrating cloud services, we’re sharing a method tailored for rapid MVP development. It's not a one-size-fits-all solution. It’s a blueprint that has significantly benefited many of our projects, serving as an inspiration for other implementation strategies. A high-level view of our workflow includes the following:
+
+bootstrapping Backstage Pic 1
+ 
+
+Prerequisites
+
+To kickstart the process, you'll need:
+
+AWS credentials: Temporary access credentials for the target AWS account
+AWS region: The deployment target region is typically US-EAST-1
+AWS authentication
+
+Authenticating against AWS is the first step, which requires the following:
+
+An existing AWS account
+An IAM role for Backstage to assume
+A user account providing temporary credentials to Backstage
+This setup enables the injection of credentials into the Backstage bootstrap template, laying the groundwork for further actions.
+
+Credential handling
+
+Using the Rackspace Technology custom action, aws:get: credentials, we parse and load the provided AWS credentials as environment variables. The credentials are then authenticated against AWS APIs, securing Backstage's access to AWS services.
+
+Infrastructure automation
+
+ASW CloudFormation for AWS IAM role creation: We automate the deployment of necessary AWS Identity and Access Management (IAM) roles through ASW CloudFormation, adhering to a naming convention and ensuring a least-privilege access model.
+OICD identity provider setup: Establishing an OpenID Connect and OpenID Provider bridge GitHub actions with AWS IAM roles.
+S3 and DynamoDB setup: Essential for managing Terraform states and ensuring concurrent operation safety, we create S3 buckets and DynamoDB tables following specific naming conventions.
+Repository structure
+
+Our template organizes the repository into distinct layers, catering to different aspects of infrastructure and service deployment, including:
+
+/bootstrap: For initial setup scripts
+/foundation: For core network and landing zone configurations
+/services: For deploying and managing service-specific resources
+/fullstack: For comprehensive templates spanning multiple infrastructure layers
+This structure not only simplifies development but also aligns with best practices for infrastructure as code (IaC).
+
+Backstage catalog registration
+
+To finalize the process, we register the newly configured entity within Backstage's software catalog, making it visible and manageable through the platform.
+
+Conclusion
+
+Our journey through the integration of AWS accounts with Backstage underscores the importance of a methodical and streamlined approach. By sharing our experience, we hope to empower developers to build robust, efficient, and scalable solutions, leveraging Backstage's full potential to enhance their development ecosystems.
+
+
+Is analysis paralysis affecting your company’s cloud adoption?
+July 1, 2020
+
+Keiran Holloway
+
+
+
+
+
+
+icon showing individual with many options to choose from
+A red image with text "Subscribe to the Rackspace Insights Newsletter" with a "Subscribe now" button. A mail icon is positioned to the right of the text.
+Recent Posts
+EHR Cloud Hosting and Migration Insights for Healthcare IT Leaders
+August 13th, 2025
+
+The Public Cloud Imperative for 2025 and Beyond
+August 12th, 2025
+
+Continuing Success with VMware: How Rackspace Supports Customers and Partners
+August 8th, 2025
+
+Continuing Success with VMware: How Rackspace Supports Customers and Partners
+August 8th, 2025
+
+AI and Automation Are Rewriting the Cloud Playbook
+August 7th, 2025
+
+Cloud adoption allows your teams to iterate rapidly and increase overall business agility. Can your day-to-day operations and decision-making engine keep up?
+
+Agility in the cloud
+At Rackspace Technology, we're pretty big advocates of the cloud. On a daily basis, we see just how quickly business challenges can be solved with cloud technology. One standout benefit is the ability to remove undifferentiated heavy-lifting activities — such as purchasing and provisioning hardware and software, installing upgrades and patches, provisioning network connectivity, and configuring and maintaining backups. Removing these activities from your to-do list means you can focus your time and effort on value-generating activities that grow your business.
+
+In essence, cloud adoption allows you to do things more quickly than you could when you had to buy your own hardware. We've seen examples where organizations have gone from an idea to a working proof of concept within hours. Historically, using dedicated servers and hardware, this same activity would have taken weeks, if not months. This rapid acceleration allows individuals and teams to go from nothing to something tangible and run a demonstration within the same day. This incredible speed shows the agility the cloud provides.
+
+ 
+
+Excessive analysis can stifle cloud adoption
+Still, we see some of the largest enterprises — even those that have adopted a cloud-first strategy — getting bogged down and unable to execute. This is generally a result of various rounds of analysis and slow decision-making processes — elements that ultimately don’t add much value to customers. For example:
+
+ 
+
+New cloud workloads that go through seemingly endless approval processes via unnecessary teams, in order to even start work.
+ 
+Customers who, simply because nobody is prepared to sign-off on the change, are reticent to implement non-service-impacting, cost-savings recommendations — even when it would have considerably increased efficiency.
+ 
+Businesses that spend more time admiring the problem than taking proactive steps to address recommended changes.
+ 
+
+On the flip side, however, when change does need to happen, even the largest and slowest-moving enterprises can execute with incredible speed in the cloud. We can look at the recent COVID-19 crisis and observe how quickly entire organizations adapted to working from home, almost overnight. Traditional business has been forced to become more agile. Change is always hard, but now is the time to embrace it.
+
+ 
+
+Five ways to embrace cloud adoption and cloud agility
+To fully realize the agility the cloud has to offer, I recommend these five best practices:
+
+ 
+
+Build out a cloud management office
+
+A cloud management office is a cross-functional team across the organization that’s responsible for transitioning to cloud technologies. It is important to recognize that moving to the cloud requires a cultural shift in addition to process adaptation. To be successful in creating this cultural shift, you must establish close communication with the teams what will be using the technology, and empower those who will be responsible for defining new cloud processes across your organization.
+
+ 
+
+Be prepared to make some mistakes along the way
+
+Big companies can learn a lot from start-ups in this respect. When considering implementing a new solution or change, focus on delivering the minimum viable product (MVP). That is to say, the first iteration of an idea doesn't need to be perfect (and in all actuality, it probably won't be). Through the process of getting something out the door, you’re going to learn a lot. You'll learn more by shipping something that’s incomplete than you would by continually analyzing the problem and debating which way to proceed without any execution.
+
+ 
+
+But don’t take silly risks
+
+While it’s important to realize that you will make some mistakes, you must still be mindful of the level of risk associated with each decision. If you're at a decision point which is effectively betting the company, then of course it’s worthwhile to speak to a wide range of experts both internally and externally before making a decision. But, realistically, how many decisions are of that magnitude? Remember, just recently the vast majority of companies quickly adopted work-from-home strategies. That's a pretty significant change that, on its own, is unlikely to lead to the demise of a company.
+
+ 
+
+Make incremental, reversible changes
+
+In its operational excellence framework, Amazon Web Services (AWS) recommends making incremental, reversible changes to infrastructure. Essentially, trying something new and untested is ok, as long as it’s reversible. For example, if you think a certain feature of your website isn’t working well, you can create a second version and perform a/b split testing to validate which version generates favorable user behavior. Or if you think you can gain deeper customer insights by reviewing visitor trends on your website, you can start capturing data on a big data platform and run it through machine learning models. When you’re done, you can essentially throw away the infrastructure and re-think the original idea with little overall investment.
+
+ 
+
+Lean in and speak with specialists in each area
+
+Speaking with external parties can accelerate many of your technology decisions. And once you get an expert opinion, trust it. They've likely seen your situation countless times — and leaning into their advice is likely going to help you avoid common pitfalls along your cloud adoption journey.
+
+And finally, don't delay. Your good idea is worth nothing without execution. At Rackspace Technology, we’re here to help. We have teams of experts ready to advise, design, build, manage and optimize your multicloud environment — so you can embrace cloud agility and grow your business. Get to know our end-to-end multicloud solutions.
+
+
+
+Do you have an operational readiness checklist?
+June 4, 2020
+
+by Keiran Holloway, Senior Manager, Rackspace Technology
+
+As mentioned in a previous post, you should consider operational readiness when you prepare to move business-critical applications and production workloads to the public cloud. You should run operational readiness checks with your Operations team in both the solution design phase and the go-live phase.
+
+This post outlines the operational readiness checks for the go-live phase after you build the solution. These checks ensure that you manage all key risk areas and confirm the services are in the best possible state before it go live with production-level traffic.
+
+For your operational readiness checklists, consider the following categories:
+
+IT service management
+On-going account governance model
+On-going operations
+IT service management
+
+Best practice reviews
+
+Various cloud providers have services that review cloud workloads and provide recommendations on best practices. Amazon Web Services® (AWS) and Microsoft Azure® both have a trusted advisor while Google® has its security command center. We recommend that you review these recommendations in detail before you go live to ensure that you are following the cloud vendors' best practices.
+
+While considering your environment, you can also review resources such as architecture frameworks and associated whitepapers to ensure that you follow deployment best practices. There are also third-party cloud management platforms that can provide enhanced checks. For example, at Rackspace, we use CloudHealth® by VMware®. Reviewing all the advice and selecting cloud management platforms is time-consuming but certainly worthwhile when looking at highly critical business systems.
+
+Infrastructure deployment practices
+
+We recommend that you deploy all infrastructure by using Infrastructure as Code (IaC). Ahead of going live, ensure that you synchronize the code base for IaC and the cloud environment.
+
+You should define and test your continuous integration and continuous deployment (CI/CD) pipelines to make sure they work as designed. This step ensures that the environments remain in a consistent state because deviations can cause entropy, which almost certainly introduces service-impacting events.
+
+Operational runbooks
+
+You should create an operational runbook and confirm that it's valid.  The runbook considers traditional IT Service Management (ITSM) factors such as:
+
+Event management
+Incident management
+Problem management
+Change management
+Configuration management (and appropriate use of a CMDB)
+Escalation procedures
+On-going account governance model
+
+Resource tagging
+
+Ensure that all your resources meet your company's tagging strategy. This practice helps you to manage these environments in the future.
+
+Resource allocations and autoscaling policies
+
+ When you transition a service into production, ensure that all the resources you allocate meet the demands of operating under a real-world traffic load. This check includes sizing instances and allocating resources for Platform as a Service (PaaS) technologies. Doing performance testing or stress testing buys you even more confidence as your traffic ramps up.
+ 
+
+Define key stakeholders
+
+Ensure that you identify and document all internal and external stakeholders' names for a workload with relevant contact details. Stakeholders might include the following individuals:
+
+Application owner
+Front-end web and back-end developers
+Escalation contacts
+Operational teams
+Individuals responsible for architecture and infrastructure deployment within the solution
+Cost approval
+
+Now that you have built the solution and it's ready to go live, validate that the costs are consistent with the forecasted costs to ensure that these services remain commercially viable.
+
+On-going operations
+
+Backups
+
+You should back up or configure replication for all business-critical data. Make sure you test these processes and confirm that they are consistent with the solution recovery point objective (RPO) and recovery time objective (RTO) goals.
+
+Logging
+
+Configure and enable an appropriate level of logging for all services. Validate that you enabled a suitable level of verbosity and that you captured adequate data. Also, consider the log retention periods.
+
+Patching
+
+Document your approach to all solutions so you can apply system updates per the organization's vulnerability assessment program. Don't forget to consider potential penetration testing or other security and vulnerability scans of the infrastructure.
+
+Service monitoring
+
+You should configure, enable, and test end-to-end service monitoring to ensure that monitoring notifications work as expected. Ensure that the teams who need to use the playbooks help to define them and understand them.
+
+Disaster recovery
+If you defined disaster recovery and business continuity plans during the solution design phase, test and validate them. Consider the RPO and RTO.
+
+Use the checklists
+
+Review these checklists with your Operations team to ensure that everything that you decided during the earlier solution architecture phase was correct and that the cloud environment is production-ready. This review is primarily about reducing risk and making sure you cover the most common areas that need more consideration during the go-live phase.
+
+It's worth noting this is a non-exhaustive list, and additional considerations depend on your organization. If you need any support with getting cloud-ready, Rackspace is here to help.

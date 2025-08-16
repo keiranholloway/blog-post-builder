@@ -1,0 +1,72 @@
+<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Event Driven Architecture: AWS Account baselining</title><style>
+      * {
+        font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+      h1 {
+        font-size: 50px;
+        margin-bottom: 17px;
+        color: #333;
+      }
+      h2 {
+        font-size: 24px;
+        line-height: 1.6;
+        margin: 30px 0 0 0;
+        margin-bottom: 18px;
+        margin-top: 33px;
+        color: #333;
+      }
+      h3 {
+        font-size: 30px;
+        margin: 10px 0 20px 0;
+        color: #333;
+      }
+      header {
+        width: 640px;
+        margin: auto;
+      }
+      section {
+        width: 640px;
+        margin: auto;
+      }
+      section p {
+        margin-bottom: 27px;
+        font-size: 20px;
+        line-height: 1.6;
+        color: #333;
+      }
+      section img {
+        max-width: 640px;
+      }
+      footer {
+        padding: 0 20px;
+        margin: 50px 0;
+        text-align: center;
+        font-size: 12px;
+      }
+      .aspectRatioPlaceholder {
+        max-width: auto !important;
+        max-height: auto !important;
+      }
+      .aspectRatioPlaceholder-fill {
+        padding-bottom: 0 !important;
+      }
+      header,
+      section[data-field=subtitle],
+      section[data-field=description] {
+        display: none;
+      }
+      </style></head><body><article class="h-entry">
+<header>
+<h1 class="p-name">Event Driven Architecture: AWS Account baselining</h1>
+</header>
+<section data-field="subtitle" class="p-summary">
+As a follow on from my previous post on event-driven architecture — I wanted and create a post which provide a real-world example of this…
+</section>
+<section data-field="body" class="e-content">
+<section name="7cc9" class="section section--body section--first section--last"><div class="section-divider"><hr class="section-divider"></div><div class="section-content"><div class="section-inner sectionLayout--insetColumn"><h3 name="475f" id="475f" class="graf graf--h3 graf--leading graf--title">Event Driven Architecture: AWS Account baselining</h3><p name="9e97" id="9e97" class="graf graf--p graf-after--h3">As a follow on from my previous post on <a href="https://medium.com/@KeiranHolloway/an-introduction-to-event-driven-architecture-c17e87dc919a" data-href="https://medium.com/@KeiranHolloway/an-introduction-to-event-driven-architecture-c17e87dc919a" class="markup--anchor markup--p-anchor" target="_blank">event-driven architecture</a> — I wanted and create a post which provide a real-world example of this in action.</p><p name="1fc0" id="1fc0" class="graf graf--p graf-after--p"><strong class="markup--strong markup--p-strong">Overview</strong></p><p name="967f" id="967f" class="graf graf--p graf-after--p">AWS best practices suggest that you adopt a multi-account strategy. AWS accounts provide a good security boundary, reduce your blast radius, and allow for logical separation of different workloads.</p><p name="f618" id="f618" class="graf graf--p graf-after--p">One of the challenges of using additional AWS accounts is that it can become difficult to ensure consistency across multiple accounts. While AWS does provide some tooling for this, such as <a href="https://aws.amazon.com/controltower/" data-href="https://aws.amazon.com/controltower/" class="markup--anchor markup--p-anchor" rel="noopener" target="_blank">Control Tower</a>, there may be situations where you require more flexibility and control.</p><p name="ff3e" id="ff3e" class="graf graf--p graf-after--p">This document discusses using various AWS serverless primitives to automate the deployment of new AWS accounts and drive greater consistency. The beauty of this approach is that it can be deployed in a modular, completely serverless fashion, with an event-driven orchestration mechanism that serves as a good demonstration of how this architecture pattern works.</p><p name="2796" id="2796" class="graf graf--p graf-after--p">The technologies which will be used in this approach include:</p><ul class="postList"><li name="70b0" id="70b0" class="graf graf--li graf-after--p"><strong class="markup--strong markup--li-strong">AWS Event Bridge — </strong>The default bridge is where AWS sends Cloud Trail messages when events occur within the AWS Infrastructure.</li><li name="8da6" id="8da6" class="graf graf--li graf-after--li"><strong class="markup--strong markup--li-strong">AWS Lambda </strong>— function as a service to do the heavy lifting and configuration on the newly vended accounts in a serverless fashion</li><li name="4325" id="4325" class="graf graf--li graf-after--li"><strong class="markup--strong markup--li-strong">AWS Step Functions</strong> — A state machine to control the orchestration between the various tasks and Lambda fucntions which are run.</li><li name="e24b" id="e24b" class="graf graf--li graf-after--li"><strong class="markup--strong markup--li-strong">AWS Organizations</strong> — This allows for the heirchcy of AWS accounts with a master account at the top and sub accounts vended sitting within that Organization.</li><li name="6f30" id="6f30" class="graf graf--li graf-after--li"><strong class="markup--strong markup--li-strong">AWS Cloud Watch </strong>— A Cloud Watch event is used to trigger the baselining process.</li></ul><p name="4503" id="4503" class="graf graf--p graf-after--li"><strong class="markup--strong markup--p-strong">High Level Design</strong></p><figure name="9a98" id="9a98" class="graf graf--figure graf-after--p"><img class="graf-image" data-image-id="1*GlSZD_BeASBgFHkc39-kAg.png" data-width="973" data-height="416" data-is-featured="true" src="https://cdn-images-1.medium.com/max/800/1*GlSZD_BeASBgFHkc39-kAg.png"></figure><p name="242c" id="242c" class="graf graf--p graf-after--figure"><strong class="markup--strong markup--p-strong">Detailed Flow</strong></p><ol class="postList"><li name="1546" id="1546" class="graf graf--li graf-after--p">When a new account is vended from your <strong class="markup--strong markup--li-strong">AWS Organization</strong> an event is sent to the default EventBridge message bus.</li><li name="2069" id="2069" class="graf graf--li graf-after--li"><strong class="markup--strong markup--li-strong">A Cloud Watch Rule </strong>monitors the default EventBridge bus and catches the new account creation event. The rule specifics is:</li></ol><blockquote name="2ab5" id="2ab5" class="graf graf--blockquote graf-after--li"><em class="markup--em markup--blockquote-em">{<br> “source”: [“aws.organizations”],<br> “detail-type”: [“AWS Service Event via CloudTrail”],<br> “detail”: {<br> “awsRegion”: [“us-east-1”],<br> “eventName”: [“CreateAccountResult”],<br> “eventSource”: [“organizations.amazonaws.com”]<br> }<br>}</em></blockquote><p name="559b" id="559b" class="graf graf--p graf-after--blockquote">3. When this event is caught it is then handed off to an AWS Step function. Step functions are state machines which can cooridinate different lambda functions. During the account vending process you can pass parameters into the state machine (and Lambdas) using value/key tags on the AWS account.</p><p name="1de0" id="1de0" class="graf graf--p graf-after--p">4. The Lambdas will then execute from the state machine. These functions ill assume the role “OrganizationAccountAccessRole” within the newly vended AWS Accounts which is created by AWS automatically. What can be completed within the flow is only really limited by your imagination and your ability to codify it within the Lambda function. The types of activities which we’ve done in the past:</p><ul class="postList"><li name="b7a0" id="b7a0" class="graf graf--li graf-after--p">Creating additional roles for third party tools to integrate against the AWS accounts (for example, Observability or Cloud Platform management tools)</li><li name="c284" id="c284" class="graf graf--li graf-after--li">Configuring Network Flow logs to be enabled</li><li name="474f" id="474f" class="graf graf--li graf-after--li">Deleting default VPCs</li><li name="4b40" id="4b40" class="graf graf--li graf-after--li">Configuration Cloud Trail</li><li name="b6e1" id="b6e1" class="graf graf--li graf-after--li">Configuring third party monitoring (Eg, SIEM ingestion)</li><li name="2fef" id="2fef" class="graf graf--li graf-after--li">Setting up AWS Config rules</li></ul><p name="1868" id="1868" class="graf graf--p graf-after--li">This process will ensure that all accounts will be configured in a consistent way as part of the AWS account vending process.</p><p name="33d0" id="33d0" class="graf graf--p graf-after--p">As part of your state machines — you should also make sure you’re dealing with failures/error conditions as well as sending reports via SNS for extra added goodness!</p><p name="fbb7" id="fbb7" class="graf graf--p graf-after--p">There are a lot of options and this post is intend to provide a demonstable use case around Event Driven architecture. If you have and feedback or comments — please let me know!</p><p name="1a02" id="1a02" class="graf graf--p graf-after--p graf--trailing">Before you go — if you’ve got this far you’ve hopefully seen some value in this article. I write and publish this content free of charge. The cost for reading it though? Please like the article and click follow me — <strong class="markup--strong markup--p-strong">Think of this as a gentlemen’s agreement. The cost is nothing finacial just a token of appreciation for the time taken to put this together. Thank you.</strong></p></div></div></section>
+</section>
+<footer><p>By <a href="https://medium.com/@KeiranHolloway" class="p-author h-card">Keiran Holloway</a> on <a href="https://medium.com/p/fb9a296f4023"><time class="dt-published" datetime="2023-02-16T14:04:16.102Z">February 16, 2023</time></a>.</p><p><a href="https://medium.com/@KeiranHolloway/event-driven-architecture-aws-account-baselining-fb9a296f4023" class="p-canonical">Canonical link</a></p><p>Exported from <a href="https://medium.com">Medium</a> on August 10, 2025.</p></footer></article></body></html>

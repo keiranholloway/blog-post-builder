@@ -1,0 +1,251 @@
+# STACK EXCHANGE CONTRIBUTIONS TEXT DUMP - KEIRAN HOLLOWAY  
+# Generated for easy indexing and scanning
+# Activity Period: 2009-2016 (13+ years on Stack Exchange network)
+# User ID: 487131
+# Total Network Reputation: 1,500+
+
+================================================================================
+## PROFILE OVERVIEW & PROFESSIONAL CONTEXT
+
+**Professional Background:**
+- Operations Manager at Anchor Systems (Sydney, Australia)
+- Specialized in "fully managed dedicated servers and complex web hosting solutions"
+- Lead Engineer experience (London, UK)
+- Infrastructure operations expertise with real-world production systems
+
+**Stack Exchange Activity:**
+- **Primary Site: Server Fault** - 1,146 reputation, 37 answers, 1 question
+- **Unix & Linux SE** - 201 reputation, 4 answers  
+- **Stack Overflow** - 101 reputation (limited activity)
+- **Community Impact:** 380K+ people reached across network
+- **Active Period:** 2009-2016 with consistent technical contributions
+
+================================================================================
+## TECHNICAL EXPERTISE & CONTRIBUTION ANALYSIS
+
+### SIGNATURE TECHNICAL APPROACH
+- **Methodical Diagnostics:** Always emphasized proper log file analysis and systematic troubleshooting
+- **Production-Focused:** Solutions based on operational experience managing real infrastructure
+- **Business-Aware:** Understood cost/benefit trade-offs in technical decisions
+- **Mentorship Style:** Guided administrators toward proper methodologies rather than quick fixes
+
+### CORE AREAS OF SPECIALIZATION
+
+**Infrastructure & Virtualization:**
+- Xen hypervisor management and capacity planning
+- Performance monitoring with comprehensive toolsets
+- "Big iron" server management and optimization
+
+**Linux System Administration:**  
+- Multi-distribution expertise (CentOS, Debian, Ubuntu, Fedora)
+- Cron job management and system maintenance automation
+- Shell scripting and system-level troubleshooting
+
+**Database Operations:**
+- MySQL performance optimization and troubleshooting  
+- Query analysis and slow query identification
+- Understanding of when to escalate to specialized DBAs
+
+**Web Hosting & Security:**
+- Apache configuration and PHP execution environments
+- SSL certificate implementation and trust chain understanding
+- Webmail solution evaluation and deployment
+
+================================================================================
+## HIGH-VALUE TECHNICAL CONTRIBUTIONS
+
+### INFRASTRUCTURE PERFORMANCE & CAPACITY PLANNING
+
+**Flagship Question: "Accurately trending random I/O performance for capacity planning"**
+*11 votes - demonstrates deep virtualization expertise*
+
+**Context & Challenge:**
+Managing "big iron" servers running Xen hypervisors with capacity planning requirements for accurate performance trending.
+
+**Technical Solution Framework:**
+- **Primary Tool:** `collectl` for comprehensive system statistics
+  - IOPS, context switches, memory utilization tracking
+  - More comprehensive than traditional iostat/vmstat
+- **Data Collection:** SNMP polling from hosts using net-snmp
+- **Storage & Visualization:** RRD format with Cacti graphing
+- **Benchmarking Tools:** `bonnie++` and Robin Miller's `dt` for baseline performance
+
+**Key Technical Insights:**
+- SATA disks typically limited to 200-300 IOPS for random access
+- Random I/O performance primarily constrained by rotational latency, not transfer rates
+- Block size has minimal impact compared to disk positioning time
+- Virtualization adds complexity layers requiring specialized monitoring
+
+**Monitoring Platform Evaluation:**
+- **Ganglia:** Good for cluster environments
+- **Zenoss:** Enterprise monitoring with SNMP integration
+- **Nagios:** Alerting and availability monitoring
+- **Cacti:** RRD-based trending and capacity planning
+
+### DATABASE PERFORMANCE OPTIMIZATION
+
+**MySQL High CPU Usage Diagnostic:**
+*Practical troubleshooting approach for multi-core systems*
+
+**Problem Analysis:**
+- 400% CPU usage correctly identified as normal behavior on quad-core systems
+- Distinction between high utilization and performance problems
+
+**Systematic Diagnostic Approach:**
+1. **Enable slow query logging** for comprehensive analysis
+2. **Real-time monitoring:** `mysqladmin processlist` for active query inspection  
+3. **Query optimization:** Identify non-optimized queries and poor table structures
+4. **Professional escalation:** Recommended contracting specialized DBAs for complex optimizations
+
+**Technical Expertise Level:**
+Demonstrated understanding of MySQL internals while acknowledging complexity boundaries and appropriate escalation paths.
+
+### LINUX SYSTEM ADMINISTRATION
+
+**Distribution Selection Philosophy:**
+*"If it ain't broke, don't fix it" - stability-focused approach*
+
+**Technical Recommendations:**
+- **Against Fedora for servers:** Short release cycle with newer, less mature software
+- **Preferred:** CentOS ("like Fedora, but more likely to work in a year") and Debian  
+- **Reasoning:** Emphasized stability and longer release cycles for production server environments
+
+**Cron Job Management Expertise:**
+*Deep understanding of Red Hat/CentOS 4 AM maintenance patterns*
+
+**Troubleshooting Methodology:**
+1. **System-wide jobs:** Check `/etc/crontab` for global scheduled tasks
+2. **User-specific jobs:** Examine `/var/spool/cron/crontabs` for individual user crons
+3. **Log analysis:** `grep "04:" /var/log/cron` for time-specific investigation
+4. **Pattern recognition:** Understanding of default system maintenance scheduling
+
+**Technical Depth:** Comprehensive knowledge of both system and user cron configurations across different Linux distributions.
+
+### WEB TECHNOLOGIES & SECURITY
+
+**PHP Security & Execution:**
+*Security-focused approach to shell execution*
+
+**Best Practices Emphasized:**
+- **Full path specification:** Always use absolute paths for executable calls
+- **Systematic debugging:** Apache error log analysis (`/var/log/httpd/error*`)
+- **Precise diagnostics:** Emphasized specific error details over vague descriptions
+
+**SSL Certificate Implementation:**
+*Business-aware approach to security trade-offs*
+
+**Market Analysis:**
+- **Core principle:** "When purchasing SSL certificate, you're buying 'trust'"
+- **Quality assessment:** Recognition that verification standards have decreased with market competition
+- **Cost-benefit reasoning:** Cheapest certificates sufficient for most use cases
+- **High-security exceptions:** Premium verification only needed for banking/financial environments
+
+**Technical Insight:** Modern instant certificates often lack meaningful verification processes.
+
+**Webmail Solution Evaluation:**
+*Practical assessment of administrative complexity vs. functionality*
+
+**Technology Recommendations:**
+- **Roundcube:** Balance of features and ease of management
+- **Horde/IMP:** Enterprise-grade functionality with higher complexity
+- **Evaluation criteria:** Administrative overhead, user accessibility, feature completeness
+
+================================================================================
+## TECHNICAL TAG EXPERTISE (Score-Based Analysis)
+
+**Primary Specializations:**
+- **linux:** 33 score (highest expertise area)
+- **php:** 12 score  
+- **email:** 10 score
+- **apache:** 9 score
+- **ubuntu:** 7 score
+- **mysql:** 7 score
+
+**Secondary Areas:**
+- **shell:** System scripting automation
+- **centos:** Enterprise Linux distributions
+- **cron:** System scheduling and maintenance
+- **virtualization:** Xen hypervisor management
+- **capacity-planning:** Infrastructure scaling
+- **performance:** System optimization
+
+================================================================================
+## PROBLEM-SOLVING METHODOLOGY & APPROACH
+
+### DIAGNOSTIC PHILOSOPHY
+**Always emphasized proper diagnostic procedures over quick fixes:**
+- Systematic log file analysis as primary troubleshooting tool
+- Specific error details required rather than accepting vague descriptions
+- Step-by-step approach to narrowing down complex problems
+- Professional understanding of when to recommend specialist consultation
+
+### KNOWLEDGE SHARING CHARACTERISTICS  
+**Practical, experience-based recommendations:**
+- Solutions focused on real-world operational needs rather than theoretical perfection
+- Clear acknowledgment of complexity levels and appropriate skill requirements
+- Mentorship approach guiding less experienced administrators
+- Business-aware cost/benefit analysis in technical decisions
+
+### PROFESSIONAL IMPACT ASSESSMENT
+**Community Reach:** 380K+ people reached across Stack Exchange network
+**Knowledge Transfer:** Provided actionable solutions for complex infrastructure challenges  
+**Mentorship Value:** Guided administrators toward proper troubleshooting methodologies
+**Operational Focus:** Solutions tested in production environments, not theoretical exercises
+
+================================================================================
+## TECHNICAL EVOLUTION & MODERN RELEVANCE  
+
+### FOUNDATIONAL TECHNOLOGIES (2009-2016)
+**Virtualization Concepts:**
+- Xen hypervisor management evolved into modern container orchestration (Docker/Kubernetes)
+- Capacity planning principles directly applicable to cloud infrastructure scaling
+- Performance monitoring approaches translate to modern APM and observability
+
+**Linux System Administration:**
+- System administration skills form foundation of modern DevOps practices
+- Cron job management remains unchanged in containerized environments
+- Distribution selection principles apply to container base image choices
+
+**Database Optimization:**  
+- MySQL troubleshooting techniques remain relevant for modern high-performance applications
+- Query optimization principles unchanged despite new database technologies
+- Performance diagnostic methods apply to NoSQL and cloud database services
+
+### TIMELESS EXPERTISE AREAS
+**Infrastructure Operations:**
+- Capacity planning methodologies applicable to cloud auto-scaling
+- Performance monitoring concepts essential for modern observability
+- System diagnostic approaches unchanged by infrastructure abstraction
+
+**Security Implementation:**
+- SSL/TLS certificate management principles remain constant
+- PHP security practices still relevant in web application security
+- Trust chain understanding applies to modern certificate automation (Let's Encrypt, etc.)
+
+**Operational Philosophy:**
+- "If it ain't broke, don't fix it" stability approach valuable in microservices complexity
+- Systematic troubleshooting methodology essential for distributed systems
+- Business-aware technical decision making critical for cloud cost optimization
+
+================================================================================
+## SIGNATURE EXPERTISE PATTERNS
+
+### PRODUCTION-HARDENED EXPERIENCE
+- Solutions based on managing real production infrastructure at scale
+- Understanding of operational trade-offs between features and stability  
+- Recognition of when complexity exceeds value proposition
+- Professional approach to escalation and specialist consultation
+
+### METHODICAL TROUBLESHOOTING
+- Emphasis on log file analysis and systematic diagnostic procedures
+- Rejection of vague problem descriptions in favor of specific error details
+- Step-by-step approach to complex problem resolution
+- Teaching diagnostic methodology alongside providing solutions
+
+### BUSINESS-TECHNICAL BALANCE
+- Cost-benefit analysis integrated into technical recommendations
+- Understanding of administrative overhead as decision factor
+- Recognition of appropriate technology selection based on organizational maturity
+- Professional consultation recommendations when internal expertise insufficient
+
+This comprehensive Stack Exchange contribution history demonstrates deep operational expertise across infrastructure, system administration, database management, and web technologies, with a consistent focus on production-ready solutions and systematic problem-solving methodologies.

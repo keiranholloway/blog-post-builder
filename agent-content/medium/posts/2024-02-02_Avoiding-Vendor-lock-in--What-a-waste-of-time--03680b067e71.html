@@ -1,0 +1,72 @@
+<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Avoiding Vendor lock-in? What a waste of time!</title><style>
+      * {
+        font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+      h1 {
+        font-size: 50px;
+        margin-bottom: 17px;
+        color: #333;
+      }
+      h2 {
+        font-size: 24px;
+        line-height: 1.6;
+        margin: 30px 0 0 0;
+        margin-bottom: 18px;
+        margin-top: 33px;
+        color: #333;
+      }
+      h3 {
+        font-size: 30px;
+        margin: 10px 0 20px 0;
+        color: #333;
+      }
+      header {
+        width: 640px;
+        margin: auto;
+      }
+      section {
+        width: 640px;
+        margin: auto;
+      }
+      section p {
+        margin-bottom: 27px;
+        font-size: 20px;
+        line-height: 1.6;
+        color: #333;
+      }
+      section img {
+        max-width: 640px;
+      }
+      footer {
+        padding: 0 20px;
+        margin: 50px 0;
+        text-align: center;
+        font-size: 12px;
+      }
+      .aspectRatioPlaceholder {
+        max-width: auto !important;
+        max-height: auto !important;
+      }
+      .aspectRatioPlaceholder-fill {
+        padding-bottom: 0 !important;
+      }
+      header,
+      section[data-field=subtitle],
+      section[data-field=description] {
+        display: none;
+      }
+      </style></head><body><article class="h-entry">
+<header>
+<h1 class="p-name">Avoiding Vendor lock-in? What a waste of time!</h1>
+</header>
+<section data-field="subtitle" class="p-summary">
+The concept of vendor lock-in is a conversation that I seem be frequently having — or more importantly — how to avoid it?
+</section>
+<section data-field="body" class="e-content">
+<section name="bb86" class="section section--body section--first"><div class="section-divider"><hr class="section-divider"></div><div class="section-content"><div class="section-inner sectionLayout--insetColumn"><h3 name="6149" id="6149" class="graf graf--h3 graf--leading graf--title">Avoiding Vendor lock-in? What a waste of time!</h3><p name="2c25" id="2c25" class="graf graf--p graf-after--h3">The concept of vendor lock-in is a conversation that I seem be frequently having — or more importantly — how to avoid it?</p><figure name="6af2" id="6af2" class="graf graf--figure graf-after--p"><img class="graf-image" data-image-id="1*Vd8hxB826SPjuw9jhylU4g.png" data-width="304" data-height="330" data-is-featured="true" src="https://cdn-images-1.medium.com/max/800/1*Vd8hxB826SPjuw9jhylU4g.png"></figure><p name="4daa" id="4daa" class="graf graf--p graf-after--figure">However — I’m going to let you into a little secret:</p><h4 name="9515" id="9515" class="graf graf--h4 graf-after--p"><strong class="markup--strong markup--h4-strong">Lock-in is unavoidable</strong></h4><p name="559a" id="559a" class="graf graf--p graf-after--h4">It is important to know that lock-in isn’t only the domain of cloud hyperscalers such as AWS/GCP/Azure. Lock-in takes any number of permutations including:</p><ul class="postList"><li name="3d87" id="3d87" class="graf graf--li graf-after--p"><strong class="markup--strong markup--li-strong">Application Vendors — </strong>Software applications which run your business always have a degree of lock-in.</li><li name="935c" id="935c" class="graf graf--li graf-after--li"><strong class="markup--strong markup--li-strong">Hardware vendors </strong>— The hardware you run on will always have a unique architecture</li><li name="8661" id="8661" class="graf graf--li graf-after--li"><strong class="markup--strong markup--li-strong">Technology selection</strong> — You’re almost certainly going to be using technology somewhere within your business that you haven’t created — you’re going to be tied to that, at least in part.</li><li name="89e1" id="89e1" class="graf graf--li graf-after--li"><strong class="markup--strong markup--li-strong">Operating Systems —</strong> Are going to provide a level of lock-in which is hard to avoid</li></ul><p name="3e2f" id="3e2f" class="graf graf--p graf-after--li"><strong class="markup--strong markup--p-strong">What about if I build it myself?</strong></p><p name="601e" id="601e" class="graf graf--p graf-after--p">Obviously some of the above can be engineered by building yourself; for example, your own application. However, Ultimately you’re going to have dependencies somewhere within your technology stack. Not to mention — you are simply creating a lock-in around having the rightly skilled engineers to build, operate and matain your services.</p><p name="4014" id="4014" class="graf graf--p graf-after--p">A common pattern which I’ve seen is seeking to adopt ‘cloud native’ approaches to operating in the cloud. The most frequently observed is using something like Kubernetes within a hyperscaler and avoiding any native cloud primitives (including running you own orchestrator).</p><p name="3a4d" id="3a4d" class="graf graf--p graf-after--p">The argument being, containers are portable right? And if I’m running the container orchestrator myself then I can just simply move to another cloud if I want to? <strong class="markup--strong markup--p-strong">Wrong.</strong></p><p name="0cb0" id="0cb0" class="graf graf--p graf-after--p">There are inherent primitives which will be adopted as part of your running environment. What about things like Identity and Access Management (IAM) or security groups? Even network topology and IP numbering is likely going to create a level of dependency.</p><p name="a0b5" id="a0b5" class="graf graf--p graf-after--p">It’s not uncommon for companies to allocate significant resources — time, money, and effort — in an attempt to dodge vendor lock-in, sometimes even before their product or service fully materializes. This preemptive aversion can lead to excessive spending and divert attention from what truly matters: <strong class="markup--strong markup--p-strong">creating and delivering business value.</strong> The irony is that, in many cases, the initial stages of development and deployment benefit from the stability and integration that comes with choosing a single vendor, suggesting that the fear of lock-in may be prematurely overstated.</p><p name="6f1c" id="6f1c" class="graf graf--p graf-after--p">Despite the challenges, the quest for cloud agnosticism remains a noble yet formidable goal for many organizations. Striving to design systems that are cloud-agnostic — capable of running across multiple cloud environments with minimal adjustment — is admirable but fraught with complexity. Such endeavors often require significant customization and abstraction, potentially diluting the unique advantages each cloud provider offers, including their highly optimized and innovative services.</p><p name="90af" id="90af" class="graf graf--p graf-after--p">In an ironic twist, organizations most vocal about their fears of vendor lock-in are frequently seeking expensive extended support contracts, displaying a paradoxical lack of agility needed to transition or adapt to new technologies. This scenario underscores a misalignment between the stated desire for flexibility and the operational realities that bind them to specific vendors or technologies.</p><p name="fbd4" id="fbd4" class="graf graf--p graf-after--p">Rather than fixating on avoiding vendor lock-in, organizations would benefit more from investing in robust continuous improvement processes.</p><p name="877c" id="877c" class="graf graf--p graf-after--p">Operating in a dynamic technological landscape demands agility, foresight, and a commitment to ongoing development. By redirecting efforts from lock-in avoidance to enhancing people, processes, and tools, companies can foster an environment ripe for continuous innovation. Key strategies include automating as many processes as possible, adopting a culture of frequent, incremental updates, embracing immutable infrastructure, and adhering to principles like those outlined in the 12-factor app methodology. Moreover, reducing the burden of undifferentiated tasks through platform as a service (PaaS) and serverless computing can significantly lighten operational loads.</p><p name="8b4b" id="8b4b" class="graf graf--p graf-after--p graf--trailing">While the specter of vendor lock-in will continue to loom in the tech industry, reorienting the conversation towards strategic flexibility, continuous improvement, and embracing the evolving technological landscape can provide a more productive and forward-looking path. By focusing on adaptability, leveraging the strengths of chosen platforms, and committing to an ethos of perpetual evolution, organizations can navigate the complexities of lock-in with confidence and agility.</p></div></div></section><section name="705b" class="section section--body section--last"><div class="section-divider"><hr class="section-divider"></div><div class="section-content"><div class="section-inner sectionLayout--insetColumn"><p name="1087" id="1087" class="graf graf--p graf--leading graf--trailing">Before you go — if you’ve got this far you’ve hopefully seen some value in this article. I write and publish this content free of charge. The cost for reading it though? <strong class="markup--strong markup--p-strong">Please clap the article and click follow me</strong> — <strong class="markup--strong markup--p-strong">Think of this as a gentlemen’s agreement. The cost is nothing financial just a token of appreciation for the time taken to put this together. Thank you</strong></p></div></div></section>
+</section>
+<footer><p>By <a href="https://medium.com/@KeiranHolloway" class="p-author h-card">Keiran Holloway</a> on <a href="https://medium.com/p/03680b067e71"><time class="dt-published" datetime="2024-02-02T15:11:48.233Z">February 2, 2024</time></a>.</p><p><a href="https://medium.com/@KeiranHolloway/avoiding-vendor-lock-in-what-a-waste-of-time-03680b067e71" class="p-canonical">Canonical link</a></p><p>Exported from <a href="https://medium.com">Medium</a> on August 10, 2025.</p></footer></article></body></html>

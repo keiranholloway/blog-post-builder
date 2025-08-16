@@ -10,6 +10,9 @@ import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as eventsources from 'aws-cdk-lib/aws-lambda-event-sources';
+import * as bedrock from '@aws-cdk/aws-bedrock-alpha';
+import * as path from 'path';
+import * as fs from 'fs';
 
 export class AutomatedBlogPosterStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -284,6 +287,9 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       targets: [new targets.LambdaFunction(contentOrchestrator)],
     });
 
+    // Create Bedrock Agent with Keiran's personality and content
+    const { agent: bedrockAgent, alias: bedrockAgentAlias } = this.createBedrockAgent();
+
     // Lambda function for content generation agent
     const contentGenerationAgent = new lambda.Function(this, 'ContentGenerationAgent', {
       runtime: lambda.Runtime.NODEJS_18_X,
@@ -296,8 +302,8 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
         CONTENT_TABLE_NAME: contentTable.tableName,
         EVENT_BUS_NAME: eventBus.eventBusName,
         ORCHESTRATOR_QUEUE_URL: agentQueue.queueUrl,
-        BEDROCK_AGENT_ID: 'PLACEHOLDER_AGENT_ID', // Will be updated after agent creation
-        BEDROCK_AGENT_ALIAS_ID: 'TSTALIASID', // Default test alias
+        BEDROCK_AGENT_ID: bedrockAgent.agentId,
+        BEDROCK_AGENT_ALIAS_ID: bedrockAgentAlias.aliasId,
         NODE_ENV: 'production',
       },
       deadLetterQueue: new sqs.Queue(this, 'ContentGenerationAgentDLQ', {
@@ -416,6 +422,27 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
 
     const apiIntegration = new apigateway.LambdaIntegration(apiHandler);
     const inputProcessorIntegration = new apigateway.LambdaIntegration(inputProcessor);
+
+    // Add CORS support to API Gateway responses
+    api.addGatewayResponse('Default4XX', {
+      type: apigateway.ResponseType.DEFAULT_4XX,
+      responseHeaders: {
+        'Access-Control-Allow-Origin': "'https://keiranholloway.github.io'",
+        'Access-Control-Allow-Headers': "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Requested-With'",
+        'Access-Control-Allow-Methods': "'GET,POST,PUT,DELETE,OPTIONS'",
+        'Access-Control-Allow-Credentials': "'true'"
+      },
+    });
+
+    api.addGatewayResponse('Default5XX', {
+      type: apigateway.ResponseType.DEFAULT_5XX,
+      responseHeaders: {
+        'Access-Control-Allow-Origin': "'https://keiranholloway.github.io'",
+        'Access-Control-Allow-Headers': "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Requested-With'",
+        'Access-Control-Allow-Methods': "'GET,POST,PUT,DELETE,OPTIONS'",
+        'Access-Control-Allow-Credentials': "'true'"
+      },
+    });
 
     // Root and general API routes
     api.root.addMethod('GET', apiIntegration);
@@ -563,5 +590,80 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       value: eventBus.eventBusName,
       description: 'EventBridge Event Bus Name',
     });
+  }
+
+  /**
+   * Create Bedrock Agent with Keiran's personality and content
+   */
+  private createBedrockAgent(): { agent: bedrock.Agent; alias: bedrock.AgentAlias } {
+    // Load agent content files
+    const agentContentPath = path.join(__dirname, '../../agent-content');
+    
+    // Read the agent personality and instructions
+    const personalityContent = fs.readFileSync(
+      path.join(agentContentPath, 'keiran-blog-author.md'), 
+      'utf-8'
+    );
+    
+    // Read blog post examples
+    const blogPostExamples = fs.readFileSync(
+      path.join(agentContentPath, 'rs-blog-posts.txt'), 
+      'utf-8'
+    );
+    
+    // Read Stack Overflow expertise
+    const stackOverflowContent = fs.readFileSync(
+      path.join(agentContentPath, 'stack-overflow.txt'), 
+      'utf-8'
+    );
+
+    // Create comprehensive agent instructions (truncated to fit Bedrock limits)
+    const agentInstructions = `
+${personalityContent.substring(0, 12000)}
+
+## CONTENT GENERATION INSTRUCTIONS
+
+When generating blog content:
+1. Use Keiran's contrarian, authoritative voice with 25+ years of experience
+2. Include specific metrics and real-world examples from enterprise scenarios
+3. Challenge conventional wisdom with evidence-based alternatives
+4. Structure content with clear problem-analysis-solution format
+5. Always connect technical decisions to business outcomes and cost implications
+6. Reference Rackspace Technology expertise and customer transformations
+7. End with partnership offer from Rackspace Technology
+8. Use signature phrases like "undifferentiated heavy lifting" and "trust me when I say"
+9. Write in the style of the provided personality examples
+10. Focus on cloud architecture, FinOps, platform engineering, and organizational change
+`.substring(0, 19500); // Ensure we stay well under the 20,000 character limit
+
+    // Create the Bedrock Agent using proper CDK constructs
+    const agent = new bedrock.Agent(this, 'KeiranBlogAgent', {
+      agentName: 'keiran-blog-author',
+      description: 'AI agent that writes blog posts in Keiran Holloway\'s distinctive contrarian and authoritative style',
+      foundationModel: bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_3_5_SONNET_V1_0,
+      instruction: agentInstructions,
+      idleSessionTTL: cdk.Duration.minutes(30),
+      shouldPrepareAgent: true, // Prepare the agent after creation
+    });
+
+    // Create agent alias for stable endpoint
+    const agentAlias = new bedrock.AgentAlias(this, 'KeiranBlogAgentAlias', {
+      agent: agent,
+      agentAliasName: 'production',
+      description: 'Production alias for Keiran blog agent',
+    });
+
+    // Output the agent details
+    new cdk.CfnOutput(this, 'BedrockAgentId', {
+      description: 'Bedrock Agent ID',
+      value: agent.agentId,
+    });
+
+    new cdk.CfnOutput(this, 'BedrockAgentAliasId', {
+      description: 'Bedrock Agent Alias ID',
+      value: agentAlias.aliasId,
+    });
+
+    return { agent, alias: agentAlias };
   }
 }

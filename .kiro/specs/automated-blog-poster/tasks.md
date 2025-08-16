@@ -95,6 +95,8 @@
 
 
 
+
+
   - Implement agent communication interface for content generation
   - Create prompt templates incorporating user writing style context
   - Build content generation request/response handling

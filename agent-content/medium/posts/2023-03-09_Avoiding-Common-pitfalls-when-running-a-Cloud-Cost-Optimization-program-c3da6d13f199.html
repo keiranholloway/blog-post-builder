@@ -1,0 +1,72 @@
+<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Avoiding Common pitfalls when running a Cloud Cost Optimization program</title><style>
+      * {
+        font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+      h1 {
+        font-size: 50px;
+        margin-bottom: 17px;
+        color: #333;
+      }
+      h2 {
+        font-size: 24px;
+        line-height: 1.6;
+        margin: 30px 0 0 0;
+        margin-bottom: 18px;
+        margin-top: 33px;
+        color: #333;
+      }
+      h3 {
+        font-size: 30px;
+        margin: 10px 0 20px 0;
+        color: #333;
+      }
+      header {
+        width: 640px;
+        margin: auto;
+      }
+      section {
+        width: 640px;
+        margin: auto;
+      }
+      section p {
+        margin-bottom: 27px;
+        font-size: 20px;
+        line-height: 1.6;
+        color: #333;
+      }
+      section img {
+        max-width: 640px;
+      }
+      footer {
+        padding: 0 20px;
+        margin: 50px 0;
+        text-align: center;
+        font-size: 12px;
+      }
+      .aspectRatioPlaceholder {
+        max-width: auto !important;
+        max-height: auto !important;
+      }
+      .aspectRatioPlaceholder-fill {
+        padding-bottom: 0 !important;
+      }
+      header,
+      section[data-field=subtitle],
+      section[data-field=description] {
+        display: none;
+      }
+      </style></head><body><article class="h-entry">
+<header>
+<h1 class="p-name">Avoiding Common pitfalls when running a Cloud Cost Optimization program</h1>
+</header>
+<section data-field="subtitle" class="p-summary">
+I have authored a peice around How to run a succesful AWS Cost-Optimization program in the past. This article is a follow-up on this, to…
+</section>
+<section data-field="body" class="e-content">
+<section name="45c3" class="section section--body section--first section--last"><div class="section-divider"><hr class="section-divider"></div><div class="section-content"><div class="section-inner sectionLayout--insetColumn"><h3 name="16da" id="16da" class="graf graf--h3 graf--leading graf--title">Avoiding Common pitfalls when running a Cloud Cost Optimization program</h3><figure name="191c" id="191c" class="graf graf--figure graf-after--h3"><img class="graf-image" data-image-id="1*YUmL6cK-0987XMG_PhI1wQ.png" data-width="543" data-height="360" data-is-featured="true" src="https://cdn-images-1.medium.com/max/800/1*YUmL6cK-0987XMG_PhI1wQ.png"></figure><p name="3bee" id="3bee" class="graf graf--p graf-after--figure">I have authored a peice around How to run a succesful <a href="https://medium.com/@KeiranHolloway/how-to-run-a-successful-aws-cost-optimization-program-6c057b08b15a" data-href="https://medium.com/@KeiranHolloway/how-to-run-a-successful-aws-cost-optimization-program-6c057b08b15a" class="markup--anchor markup--p-anchor" target="_blank">AWS Cost-Optimization program</a> in the past. This article is a follow-up on this, to discuss common mistakes and pitfalls.</p><p name="5d94" id="5d94" class="graf graf--p graf-after--p">This covers the key misteps that I’ve observed in my time working with AWS.</p><h4 name="34d0" id="34d0" class="graf graf--h4 graf-after--p"><strong class="markup--strong markup--h4-strong">Stop doing optimization and start doing cost governance</strong></h4><p name="d23c" id="d23c" class="graf graf--p graf-after--h4">If you’re commencing a cost optimization activity within your organization then I have bad news for you: <strong class="markup--strong markup--p-strong">You’re already wasting money.</strong></p><p name="1697" id="1697" class="graf graf--p graf-after--p">When operating in the cloud, the concepts of cost and architecture are effectively the same thing. Ensuring that you have good architecture practices in place that considers cost is critical.</p><p name="a6f5" id="a6f5" class="graf graf--p graf-after--p">Your cloud team should be oriented for good cost decisions up-front which will save you money. This means good architecture decisions. This will also save you time as you will not need to go back to unwind design decisions which were cost ineffective.</p><h4 name="2c68" id="2c68" class="graf graf--h4 graf-after--p"><strong class="markup--strong markup--h4-strong">Failing to understand the recommendations</strong></h4><p name="1df6" id="1df6" class="graf graf--p graf-after--h4"><a href="https://medium.com/@KeiranHolloway/how-to-run-a-successful-aws-cost-optimization-program-6c057b08b15a" data-href="https://medium.com/@KeiranHolloway/how-to-run-a-successful-aws-cost-optimization-program-6c057b08b15a" class="markup--anchor markup--p-anchor" target="_blank">As per my last blog post</a>, the first step is to look at the recommendations being provided and drawing sensible conclusions. Cloud Management platforms (such as Cloud Health) and associated tooling will provide recommendations. These recommendations are provided without context. This means that they could be wrong. For example, recommedantions around downsizing EC2 instances takes into account performance data available. Chosing to act on these recommendations without context could have a material impact on service availability.</p><p name="23b2" id="23b2" class="graf graf--p graf-after--p">I fondly reflect on a customer that I was working with who looked at AWS cost saving recommendations and decided to remove 300 “unused” elastic load balancers</p><p name="bee7" id="bee7" class="graf graf--p graf-after--p">They were considered “‘unused” because they’d had a very small number of hits and used with ECS containers. The cost management tool was misreporting their use. A well-intentioned cloud engineer went in and deleted these load balancers. Whilst this would have saved a chunk of cash, this also rendered both the user-acceptence and development environments unavailable.</p><p name="5456" id="5456" class="graf graf--p graf-after--p">Worse than this — the URI paths and target groups had been added manually (outside of IaC). This mean that it wasn’t simply a case of re-deploying. Every single one of these ELBs needed to be recreated by hand. This took days to complete. Whilst this work was being completed none of the developers could do their job.</p><p name="236b" id="236b" class="graf graf--p graf-after--p">There were significant cost-savings which were otherwise possible. In part, the ELBs could be consolidated. However, deleting every single load balancer was not the desirable approach!</p><h4 name="16f8" id="16f8" class="graf graf--h4 graf-after--p"><strong class="markup--strong markup--h4-strong">Not having the right buy in from around the business</strong></h4><p name="afa8" id="afa8" class="graf graf--p graf-after--h4">Needing to rearchitect and transition workloads off expensive deployment patterns takes time. This also requires involvement from various stakeholders, and they need to be on-board.</p><p name="282d" id="282d" class="graf graf--p graf-after--p">If you don’t get this, then you’re going to be stymied from the get-go.</p><p name="60f3" id="60f3" class="graf graf--p graf-after--p">Previously, I worked with customers who had a legacy shared services environment. This environment was running software which was aging and unreliable. This needed to be propped up on a daily basis. It was overprovision with too many resources and all work was manual. Simple cost effective concepts like autoscaling were missing.</p><p name="b3a9" id="b3a9" class="graf graf--p graf-after--p">Our team built a new shiny platform which was all singing and dancing. All administration tasks were automated using IAC and running at a fraction of the cost. The customer ended up running the two environments con-currently for many months. There was no buy-in or commitment from the application owners to deploy onto the new platform. Running two copies of the infrastructure resulted in even more wasted money!</p><h4 name="3497" id="3497" class="graf graf--h4 graf-after--p"><strong class="markup--strong markup--h4-strong">Bringing in experts to help with the wrong aspects</strong></h4><p name="1915" id="1915" class="graf graf--p graf-after--h4">When working through a cost optimization program, there are a few different roles. For example, application owners, developers, cloud engineers, cloud architects, security experts, data engineers.</p><p name="abbc" id="abbc" class="graf graf--p graf-after--p">Cloud engineers are the “doers”. They’re the people who will be putting hands on keyboards to do the work. A wrong (but common) assumption is having more cloud engineers at once will save money faster.</p><p name="5ec2" id="5ec2" class="graf graf--p graf-after--p">As per the theory of constraints goes. <strong class="markup--strong markup--p-strong">Any optimization outside the bottleneck is an illusion.</strong></p><p name="dd4a" id="dd4a" class="graf graf--p graf-after--p">For example, understanding the context of the recommendations requires developer knowledge. It could also even need input from the application owner. If you’re looking to re-architect, you need cloud architects. Make sure you have the right skills and capability otherwise you could end up stalled. Adding more engineers only makes senses if you’re constrained with the doing.</p><h4 name="ee81" id="ee81" class="graf graf--h4 graf-after--p"><strong class="markup--strong markup--h4-strong">Failing to think long-term — specifically around architecture practices.</strong></h4><p name="eb8a" id="eb8a" class="graf graf--p graf-after--h4">It is not uncommon to see people lift-and-shift workloads from on-prem or dedicated host environments into the cloud. If you want a similar level of resilience and availability that you’re familiar with running you own facility — it is probably going to cost you more to use the cloud.</p><p name="d8dd" id="d8dd" class="graf graf--p graf-after--p">When moving to the cloud, consider the cost around long running EC2 or Virtual Machines. It can be expensive. Consider licensing requires to do so as well. Compare and contrast this against cloud native primitives (serverless or PaaS approaches); at a bare minimum — consider containerisation.</p><h4 name="0088" id="0088" class="graf graf--h4 graf-after--p">Be aware of the upper limits of what you can save..</h4><p name="b35b" id="b35b" class="graf graf--p graf-after--h4">You may have historically procured commercial discounts through volume purchasing agreements. For example, with AWS you can buy savings plans or reserved instances/capacity. When using these commerical constructs, you get a discount for commiting to a certain level of spend. Usually the commitment team is either 1 or 3 years and you agree to pay a minimum fixed fee each month.</p><p name="636a" id="636a" class="graf graf--p graf-after--p">Spending time and money once you get to your agreed minimum spent will make no difference to your AWS bill. Be concious of this when running cost optimization programs as this will be the upper limit of savings.</p><p name="3176" id="3176" class="graf graf--p graf-after--p graf--trailing">Before you go — if you’ve got this far you’ve hopefully seen some value in this article. I write and publish this content free of charge. The cost for reading it though? <strong class="markup--strong markup--p-strong">Please clap the article and click follow me</strong> — <strong class="markup--strong markup--p-strong">Think of this as a gentlemen’s agreement. The cost is nothing finacial just a token of appreciation for the time taken to put this together. Thank you</strong></p></div></div></section>
+</section>
+<footer><p>By <a href="https://medium.com/@KeiranHolloway" class="p-author h-card">Keiran Holloway</a> on <a href="https://medium.com/p/c3da6d13f199"><time class="dt-published" datetime="2023-03-09T17:10:44.901Z">March 9, 2023</time></a>.</p><p><a href="https://medium.com/@KeiranHolloway/avoiding-common-pitfalls-when-running-a-cloud-cost-optimisation-program-c3da6d13f199" class="p-canonical">Canonical link</a></p><p>Exported from <a href="https://medium.com">Medium</a> on August 10, 2025.</p></footer></article></body></html>

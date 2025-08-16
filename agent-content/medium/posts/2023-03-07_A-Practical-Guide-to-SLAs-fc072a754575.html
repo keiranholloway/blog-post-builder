@@ -1,0 +1,72 @@
+<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>A Practical Guide to SLAs</title><style>
+      * {
+        font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+      h1 {
+        font-size: 50px;
+        margin-bottom: 17px;
+        color: #333;
+      }
+      h2 {
+        font-size: 24px;
+        line-height: 1.6;
+        margin: 30px 0 0 0;
+        margin-bottom: 18px;
+        margin-top: 33px;
+        color: #333;
+      }
+      h3 {
+        font-size: 30px;
+        margin: 10px 0 20px 0;
+        color: #333;
+      }
+      header {
+        width: 640px;
+        margin: auto;
+      }
+      section {
+        width: 640px;
+        margin: auto;
+      }
+      section p {
+        margin-bottom: 27px;
+        font-size: 20px;
+        line-height: 1.6;
+        color: #333;
+      }
+      section img {
+        max-width: 640px;
+      }
+      footer {
+        padding: 0 20px;
+        margin: 50px 0;
+        text-align: center;
+        font-size: 12px;
+      }
+      .aspectRatioPlaceholder {
+        max-width: auto !important;
+        max-height: auto !important;
+      }
+      .aspectRatioPlaceholder-fill {
+        padding-bottom: 0 !important;
+      }
+      header,
+      section[data-field=subtitle],
+      section[data-field=description] {
+        display: none;
+      }
+      </style></head><body><article class="h-entry">
+<header>
+<h1 class="p-name">A Practical Guide to SLAs</h1>
+</header>
+<section data-field="subtitle" class="p-summary">
+I’ve previously authored a topic on What is an SLA anyhow? This covered several aspects, such as what an SLA is, the types of SLAs that…
+</section>
+<section data-field="body" class="e-content">
+<section name="8f66" class="section section--body section--first section--last"><div class="section-divider"><hr class="section-divider"></div><div class="section-content"><div class="section-inner sectionLayout--insetColumn"><h3 name="acfd" id="acfd" class="graf graf--h3 graf--leading graf--title">A Practical Guide to SLAs</h3><figure name="fa9d" id="fa9d" class="graf graf--figure graf-after--h3"><img class="graf-image" data-image-id="1*gVDDweGRrQ6NLuV377AB0g.png" data-width="418" data-height="235" data-is-featured="true" src="https://cdn-images-1.medium.com/max/800/1*gVDDweGRrQ6NLuV377AB0g.png"></figure><p name="fd5f" id="fd5f" class="graf graf--p graf-after--figure">I’ve previously authored a topic on <a href="https://medium.com/@KeiranHolloway/whats-in-an-sla-anyhow-c5e0028516bb" data-href="https://medium.com/@KeiranHolloway/whats-in-an-sla-anyhow-c5e0028516bb" class="markup--anchor markup--p-anchor" target="_blank">What is an SLA anyhow?</a> This covered several aspects, such as what an SLA is, the types of SLAs that exist, implications of a vendor not adhering to their SLAs, and what to think about when negotiating an SLA. If you’re interested in the basics, it’s worthwhile checking that out.</p><p name="a134" id="a134" class="graf graf--p graf-after--p">This article is more to discuss the real-world implications of an SLA and some of the nuances you are almost certainly going to come up against when either operating within an SLA or holding a vendor to task.</p><h4 name="ce9d" id="ce9d" class="graf graf--h4 graf-after--p"><strong class="markup--strong markup--h4-strong">SLA credits are rarely beneficial to anyone…</strong></h4><p name="1941" id="1941" class="graf graf--p graf-after--h4">SLA credits are one form of penalty for failing to meet the agreed standard. However, they’re generally of little value.</p><p name="16aa" id="16aa" class="graf graf--p graf-after--p">For example, if you are buying a server from a hosting provider, they’re essentially providing you with the physical or virtual machine that is sitting in a data center, connected to power, and highly available on the Internet.</p><p name="1c7a" id="1c7a" class="graf graf--p graf-after--p">On top of these very low-level services, you’re likely going to be installing some software, building and deploying an application, and providing a service to end-users. Hopefully, at least some of these users will pay you for the service you’re providing as it demonstrates value.</p><p name="617f" id="617f" class="graf graf--p graf-after--p">With this value chain, the money you’re earning from the service needs to be more than what you’re paying for the IaaS (if it isn’t, you’re not going to be in business for very long!).</p><p name="ceb9" id="ceb9" class="graf graf--p graf-after--p">The SLA is only ever going to be offering a credit against the cost of providing the lower-level services. SLAs are not going to cover losses of revenue while the service is unavailable. Having a vendor give you service credits when the service is not working is not really providing you much assistance or assurance here.</p><p name="34ce" id="34ce" class="graf graf--p graf-after--p"><strong class="markup--strong markup--p-strong">My recommendation:</strong> Pay less attention to the SLA credits and focus more on what the provider is doing to fix the problems that are preventing the service from being reliable. I’d prefer they get this right versus being credited for sub-standard service.</p><p name="35f9" id="35f9" class="graf graf--p graf-after--p">SLAs should also allow you to end the service and move to another vendor without penalty if they’re not hitting the agreed service level.</p><h4 name="b1ac" id="b1ac" class="graf graf--h4 graf-after--p"><strong class="markup--strong markup--h4-strong">Don’t be fooled by the SLA numbers…</strong></h4><p name="b1b5" id="b1b5" class="graf graf--p graf-after--h4">SLA numbers can be a confusing beast. If you consider an SLA of 99.9% uptime, across a month, this allows for a total amount of downtime of approximately 43 minutes.</p><p name="44eb" id="44eb" class="graf graf--p graf-after--p">Commonly though, you will see SLAs that will be 99.99% — this is only an extra 0.09% of time, right! That’s not much, surely?</p><p name="b330" id="b330" class="graf graf--p graf-after--p">The reality is though, when considered across a month, the maximum downtime permissible with an SLA of 99.99% is actually more like 4 minutes, 21 seconds. That 0.09 doesn’t sound like much, but it drastically changes the design characteristics of a service.</p><p name="f1a5" id="f1a5" class="graf graf--p graf-after--p">Consider scheduled maintenance activities. For example, installing security patches on a machine or to runtime environments is going to have to happen at some point in time. These need to be factored into your SLA expectations!</p><p name="e8bf" id="e8bf" class="graf graf--p graf-after--p">On the topic of maintaining SLAs — if you’re expecting an SLA of 99%, then you need to do some of the following:</p><ul class="postList"><li name="d5c9" id="d5c9" class="graf graf--li graf-after--p">There cannot be any single point of failure. Maintenance will need to be done at some point, and this will take the service out.</li><li name="72ba" id="72ba" class="graf graf--li graf-after--li">Failure conditions need to be understood, and recovery needs to be automated. If you’re targeting no more than 4 minutes downtime, then you do not have the opportunity to page a human for a response.</li><li name="8c16" id="8c16" class="graf graf--li graf-after--li">As a rule of thumb, for each time you add another 9 to the end of an SLA, you’re effectively doubling your operating costs. For example, 99.99% will cost you twice what 99.9% will cost you to operate and run.</li><li name="cf96" id="cf96" class="graf graf--li graf-after--li">The more automation and redundancy you add, the more complexity gets added to a solution. Complexity can lead to human error and put the SLAs at risk.</li></ul><p name="6d31" id="6d31" class="graf graf--p graf-after--li"><strong class="markup--strong markup--p-strong">My Recommendation: </strong>Make sure that you understand the real business requirements. Everyone wants 100% availability, but that is really expensive. Think about what the real-world implications of downtime are to your business.</p><h4 name="b741" id="b741" class="graf graf--h4 graf-after--p"><strong class="markup--strong markup--h4-strong">Measuring performance against an SLA…</strong></h4><p name="e4a0" id="e4a0" class="graf graf--p graf-after--h4">This is one of those things which, in principle, sounds easy but can be quite hard. Beauty is in the eye of the beholder, and similar is availability.</p><p name="f7c4" id="f7c4" class="graf graf--p graf-after--p">It can be quite hard to measure the availability of a service as the question can arise — “From where?”</p><p name="eebf" id="eebf" class="graf graf--p graf-after--p">A vendor might see that a service is online and available from the perspective of the monitoring station or data center. However, this may not be the case from your home office Internet connection.</p><p name="1f08" id="1f08" class="graf graf--p graf-after--p"><strong class="markup--strong markup--p-strong">My recommendation:</strong> Have a conversation with your vendor around availability. If there are expectations for your hosting partner to report on service availability, ask for specifics around how this will be measured and over what time period.</p><h4 name="db93" id="db93" class="graf graf--h4 graf-after--p"><strong class="markup--strong markup--h4-strong">Don’t trust any vendor who offers a 100% SLA commitment around service availability…</strong></h4><p name="215e" id="215e" class="graf graf--p graf-after--h4">Finally, never trust a vendor which is providing 100% uptime. While it is possible to have it in absolutely mission-critical systems (for example, flight control systems on airlines), it is eye-wateringly expensive. Changing an interaction on the service is also particularly difficult.</p><p name="036f" id="036f" class="graf graf--p graf-after--p">If a vendor is promising 100% uptime, they’re either lying or not measuring it in a particularly meaningful way. Keep in mind, even the biggest of the big have downtime now and again (AWS, Google, Microsoft, etc.).</p><p name="57fe" id="57fe" class="graf graf--p graf-after--p"><strong class="markup--strong markup--p-strong">My recommendation:</strong> Avoid any vendor that is guaranteeing 100% availability!</p><p name="6951" id="6951" class="graf graf--p graf-after--p graf--trailing">Before you go — if you’ve got this far you’ve hopefully seen some value in this article. I write and publish this content free of charge. The cost for reading it though? Please like the article and click follow me — <strong class="markup--strong markup--p-strong">Think of this as a gentlemen’s agreement. The cost is nothing finacial just a token of appreciation for the time taken to put this together. Thank you</strong></p></div></div></section>
+</section>
+<footer><p>By <a href="https://medium.com/@KeiranHolloway" class="p-author h-card">Keiran Holloway</a> on <a href="https://medium.com/p/fc072a754575"><time class="dt-published" datetime="2023-03-07T16:52:52.573Z">March 7, 2023</time></a>.</p><p><a href="https://medium.com/@KeiranHolloway/a-practical-guide-to-slas-fc072a754575" class="p-canonical">Canonical link</a></p><p>Exported from <a href="https://medium.com">Medium</a> on August 10, 2025.</p></footer></article></body></html>
