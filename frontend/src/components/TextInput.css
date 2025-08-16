@@ -1,0 +1,188 @@
+.text-input {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.text-input__form {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.text-input__container {
+  padding: 1.5rem;
+}
+
+.text-input__textarea {
+  width: 100%;
+  min-height: 200px;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+  background: #fafbfc;
+}
+
+.text-input__textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.text-input__textarea:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.text-input__textarea::placeholder {
+  color: #8899a6;
+  font-style: italic;
+}
+
+.text-input__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  gap: 1rem;
+}
+
+.text-input__character-count {
+  font-size: 0.875rem;
+  color: #8899a6;
+  font-weight: 500;
+}
+
+.text-input__character-count--warning {
+  color: #ff6b6b;
+}
+
+.text-input__submit-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 140px;
+  justify-content: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.text-input__submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.text-input__submit-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.text-input__submit-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.text-input__submit-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.text-input__spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.text-input__tips {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.text-input__tips h4 {
+  margin: 0 0 0.75rem 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.text-input__tips ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #666;
+}
+
+.text-input__tips li {
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .text-input {
+    padding: 0.5rem;
+  }
+  
+  .text-input__container {
+    padding: 1rem;
+  }
+  
+  .text-input__textarea {
+    min-height: 150px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  .text-input__footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .text-input__submit-button {
+    width: 100%;
+    padding: 1rem;
+  }
+  
+  .text-input__character-count {
+    text-align: center;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .text-input__submit-button:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .text-input__submit-button:active:not(:disabled) {
+    background: rgba(102, 126, 234, 0.9);
+  }
+}

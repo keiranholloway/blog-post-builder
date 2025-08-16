@@ -12,18 +12,32 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // DynamoDB Tables
+    // DynamoDB Tables with proper indexes
     const contentTable = new dynamodb.Table(this, 'ContentTable', {
-      tableName: 'automated-blog-poster-content',
+      tableName: `automated-blog-poster-content-${Date.now()}`,
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       encryption: dynamodb.TableEncryption.AWS_MANAGED,
       pointInTimeRecovery: true,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    // GSI for querying content by user
+    contentTable.addGlobalSecondaryIndex({
+      indexName: 'UserIdIndex',
+      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+    });
+
+    // GSI for querying content by status
+    contentTable.addGlobalSecondaryIndex({
+      indexName: 'StatusIndex',
+      partitionKey: { name: 'status', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'updatedAt', type: dynamodb.AttributeType.STRING },
     });
 
     const userTable = new dynamodb.Table(this, 'UserTable', {
-      tableName: 'automated-blog-poster-users',
+      tableName: `automated-blog-poster-users-${Date.now()}`,
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       encryption: dynamodb.TableEncryption.AWS_MANAGED,
@@ -31,22 +45,69 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
-    // S3 Buckets
+    // GSI for querying users by email
+    userTable.addGlobalSecondaryIndex({
+      indexName: 'EmailIndex',
+      partitionKey: { name: 'email', type: dynamodb.AttributeType.STRING },
+    });
+
+    // Agent Messages Table for tracking agent communications
+    const agentMessagesTable = new dynamodb.Table(this, 'AgentMessagesTable', {
+      tableName: `automated-blog-poster-agent-messages-${Date.now()}`,
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      pointInTimeRecovery: true,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    // GSI for querying messages by content ID
+    agentMessagesTable.addGlobalSecondaryIndex({
+      indexName: 'ContentIdIndex',
+      partitionKey: { name: 'contentId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+    });
+
+    // GSI for querying messages by status
+    agentMessagesTable.addGlobalSecondaryIndex({
+      indexName: 'StatusIndex',
+      partitionKey: { name: 'status', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+    });
+
+    // S3 Buckets with comprehensive lifecycle policies
     const audioBucket = new s3.Bucket(this, 'AudioBucket', {
-      bucketName: `automated-blog-poster-audio-${this.account}`,
+      bucketName: `automated-blog-poster-audio-${this.account}-${Date.now()}`,
       encryption: s3.BucketEncryption.S3_MANAGED,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      lifecycleRules: [{
-        id: 'DeleteAudioFiles',
-        expiration: cdk.Duration.days(7), // Auto-delete audio files after 7 days
-      }],
+      lifecycleRules: [
+        {
+          id: 'DeleteAudioFiles',
+          expiration: cdk.Duration.days(7), // Auto-delete audio files after 7 days
+        },
+      ],
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
     const imageBucket = new s3.Bucket(this, 'ImageBucket', {
-      bucketName: `automated-blog-poster-images-${this.account}`,
+      bucketName: `automated-blog-poster-images-${this.account}-${Date.now()}`,
       encryption: s3.BucketEncryption.S3_MANAGED,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      lifecycleRules: [
+        {
+          id: 'TransitionToIA',
+          transitions: [
+            {
+              storageClass: s3.StorageClass.INFREQUENT_ACCESS,
+              transitionAfter: cdk.Duration.days(30), // Move to IA after 30 days
+            },
+            {
+              storageClass: s3.StorageClass.GLACIER,
+              transitionAfter: cdk.Duration.days(90), // Move to Glacier after 90 days
+            },
+          ],
+        },
+      ],
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
@@ -73,54 +134,64 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       description: 'OAuth credentials for publishing platforms',
     });
 
-    // Lambda function for API handling
+    // Lambda function for API handling with proper error handling
     const apiHandler = new lambda.Function(this, 'ApiHandler', {
       runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromInline(`
-        exports.handler = async (event) => {
-          return {
-            statusCode: 200,
-            headers: {
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Headers': 'Content-Type',
-              'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
-            },
-            body: JSON.stringify({
-              message: 'Automated Blog Poster API',
-              version: '1.0.0'
-            }),
-          };
-        };
-      `),
+      handler: 'api-handler.handler',
+      code: lambda.Code.fromAsset('lambda'),
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
       environment: {
         CONTENT_TABLE_NAME: contentTable.tableName,
         USER_TABLE_NAME: userTable.tableName,
+        AGENT_MESSAGES_TABLE_NAME: agentMessagesTable.tableName,
         AUDIO_BUCKET_NAME: audioBucket.bucketName,
         IMAGE_BUCKET_NAME: imageBucket.bucketName,
         AGENT_QUEUE_URL: agentQueue.queueUrl,
         EVENT_BUS_NAME: eventBus.eventBusName,
         PLATFORM_CREDENTIALS_SECRET: platformCredentials.secretArn,
+        NODE_ENV: 'production',
       },
+      deadLetterQueue: new sqs.Queue(this, 'ApiHandlerDLQ', {
+        queueName: 'automated-blog-poster-api-dlq',
+      }),
     });
 
     // Grant permissions
     contentTable.grantReadWriteData(apiHandler);
     userTable.grantReadWriteData(apiHandler);
+    agentMessagesTable.grantReadWriteData(apiHandler);
     audioBucket.grantReadWrite(apiHandler);
     imageBucket.grantReadWrite(apiHandler);
     agentQueue.grantSendMessages(apiHandler);
     eventBus.grantPutEventsTo(apiHandler);
     platformCredentials.grantRead(apiHandler);
 
-    // API Gateway
+    // API Gateway with GitHub Pages optimized CORS
     const api = new apigateway.RestApi(this, 'Api', {
       restApiName: 'Automated Blog Poster API',
       description: 'API for the automated blog poster system',
       defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: ['Content-Type', 'Authorization'],
+        allowOrigins: [
+          'https://*.github.io', // GitHub Pages domains
+          'http://localhost:*', // Local development
+          'https://localhost:*', // Local development with HTTPS
+        ],
+        allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowHeaders: [
+          'Content-Type',
+          'Authorization',
+          'X-Amz-Date',
+          'X-Api-Key',
+          'X-Amz-Security-Token',
+          'X-Requested-With',
+        ],
+        allowCredentials: true,
+      },
+      deployOptions: {
+        stageName: 'prod',
+        throttlingRateLimit: 100,
+        throttlingBurstLimit: 200,
       },
     });
 
@@ -154,6 +225,21 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'ImageBucketName', {
       value: imageBucket.bucketName,
       description: 'S3 Image Bucket Name',
+    });
+
+    new cdk.CfnOutput(this, 'AgentMessagesTableName', {
+      value: agentMessagesTable.tableName,
+      description: 'DynamoDB Agent Messages Table Name',
+    });
+
+    new cdk.CfnOutput(this, 'AgentQueueUrl', {
+      value: agentQueue.queueUrl,
+      description: 'SQS Agent Queue URL',
+    });
+
+    new cdk.CfnOutput(this, 'EventBusName', {
+      value: eventBus.eventBusName,
+      description: 'EventBridge Event Bus Name',
     });
   }
 }

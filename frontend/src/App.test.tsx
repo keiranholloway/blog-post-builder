@@ -3,9 +3,9 @@ import { describe, it, expect } from 'vitest';
 import App from './App';
 
 describe('App', () => {
-  it('renders automated blog poster heading', () => {
+  it('renders create blog post heading', () => {
     render(<App />);
-    const linkElement = screen.getByText(/Automated Blog Poster/i);
+    const linkElement = screen.getByText(/Create Your Blog Post/i);
     expect(linkElement).toBeInTheDocument();
   });
 });

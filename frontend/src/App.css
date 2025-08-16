@@ -1,23 +1,80 @@
 .App {
-  text-align: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  position: relative;
 }
 
-.App-header {
-  background-color: #282c34;
-  padding: 20px;
-  color: white;
+.App__main {
+  padding: 2rem 0;
   min-height: 100vh;
+}
+
+.App__notification {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 400px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.App__notification--error {
+  background: #ff6b6b;
+  color: white;
+}
+
+.App__notification--success {
+  background: #4caf50;
+  color: white;
+}
+
+.App__notification-close {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
 }
 
-/* Mobile-first responsive design */
+.App__notification-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile optimizations */
 @media (max-width: 768px) {
-  .App-header {
-    padding: 10px;
-    font-size: calc(8px + 2vmin);
+  .App__main {
+    padding: 1rem 0;
+  }
+  
+  .App__notification {
+    top: 0.5rem;
+    right: 0.5rem;
+    left: 0.5rem;
+    max-width: none;
   }
 }
