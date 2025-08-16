@@ -1,9 +1,11 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
 import App from './App';
 
-test('renders automated blog poster heading', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/Automated Blog Poster/i);
-  expect(linkElement).toBeInTheDocument();
+describe('App', () => {
+  it('renders automated blog poster heading', () => {
+    render(<App />);
+    const linkElement = screen.getByText(/Automated Blog Poster/i);
+    expect(linkElement).toBeInTheDocument();
+  });
 });
