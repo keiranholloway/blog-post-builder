@@ -55,8 +55,18 @@ export const handler = async (
 ): Promise<APIGatewayProxyResult> => {
   console.log('Input Processor Event:', JSON.stringify(event, null, 2));
 
+  // Allowed origins for CORS
+  const allowedOrigins = [
+    'https://keiranholloway.github.io',
+    'http://localhost:3000',
+    'http://localhost:5173',
+  ];
+  
+  const requestOrigin = event.headers.origin || event.headers.Origin;
+  const allowedOrigin = allowedOrigins.includes(requestOrigin || '') ? requestOrigin! : allowedOrigins[0];
+
   const corsHeaders = {
-    'Access-Control-Allow-Origin': event.headers.origin || '*',
+    'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Requested-With',
     'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
     'Access-Control-Allow-Credentials': 'true',
