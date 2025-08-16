@@ -1,0 +1,298 @@
+.feedback-form {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.form-header {
+  margin-bottom: 24px;
+}
+
+.form-header h3 {
+  margin: 0 0 8px 0;
+  color: #212529;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.form-description {
+  margin: 0;
+  color: #6c757d;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #495057;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.required {
+  color: #dc3545;
+}
+
+/* Revision type selector */
+.revision-type-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  color: #495057;
+  transition: border-color 0.2s ease;
+}
+
+.revision-type-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.revision-type-select:disabled {
+  background: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Template toggle */
+.template-toggle {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #495057;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.template-toggle:hover:not(:disabled) {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.template-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Template options */
+.template-options {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.template-button {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.template-button:hover:not(:disabled) {
+  border-color: #007bff;
+  background: #f8f9ff;
+}
+
+.template-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.template-button strong {
+  color: #007bff;
+  font-size: 13px;
+}
+
+.template-button span {
+  color: #6c757d;
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* Feedback textarea */
+.feedback-textarea {
+  width: 100%;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+  min-height: 120px;
+}
+
+.feedback-textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.feedback-textarea:disabled {
+  background: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+.feedback-textarea::placeholder {
+  color: #adb5bd;
+}
+
+.character-count {
+  text-align: right;
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 4px;
+}
+
+/* Form actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+}
+
+.cancel-button,
+.submit-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cancel-button {
+  background: #6c757d;
+  color: white;
+}
+
+.cancel-button:hover:not(:disabled) {
+  background: #545b62;
+}
+
+.submit-button {
+  background: #007bff;
+  color: white;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.cancel-button:disabled,
+.submit-button:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Small spinner for submit button */
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .feedback-form {
+    padding: 20px;
+    border-radius: 8px;
+  }
+
+  .form-header h3 {
+    font-size: 18px;
+  }
+
+  .template-options {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .cancel-button,
+  .submit-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .feedback-form {
+    padding: 16px;
+  }
+
+  .form-header {
+    margin-bottom: 20px;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .feedback-textarea {
+    min-height: 100px;
+  }
+}
+
+/* Focus states for accessibility */
+.template-toggle:focus,
+.template-button:focus,
+.cancel-button:focus,
+.submit-button:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .feedback-form {
+    border: 2px solid #000;
+  }
+  
+  .revision-type-select,
+  .feedback-textarea {
+    border-color: #000;
+  }
+  
+  .template-button {
+    border-color: #000;
+  }
+}

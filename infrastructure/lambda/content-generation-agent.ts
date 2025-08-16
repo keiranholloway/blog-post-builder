@@ -2,6 +2,7 @@ import { SQSEvent, Context } from 'aws-lambda';
 import { DynamoDBClient, GetItemCommand, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
 import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
+import { BedrockAgentRuntimeClient, InvokeAgentCommand } from '@aws-sdk/client-bedrock-agent-runtime';
 import { v4 as uuidv4 } from 'uuid';
 
 // Types for content generation
@@ -51,12 +52,15 @@ interface RevisionRequest {
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION });
 const eventBridgeClient = new EventBridgeClient({ region: process.env.AWS_REGION });
 const sqsClient = new SQSClient({ region: process.env.AWS_REGION });
+const bedrockAgentClient = new BedrockAgentRuntimeClient({ region: process.env.AWS_REGION });
 
 // Environment variables
 const USER_TABLE = process.env.USER_TABLE_NAME!;
 const CONTENT_TABLE = process.env.CONTENT_TABLE_NAME!;
 const EVENT_BUS = process.env.EVENT_BUS_NAME!;
 const ORCHESTRATOR_QUEUE = process.env.ORCHESTRATOR_QUEUE_URL!;
+const BEDROCK_AGENT_ID = process.env.BEDROCK_AGENT_ID!;
+const BEDROCK_AGENT_ALIAS_ID = process.env.BEDROCK_AGENT_ALIAS_ID!;
 
 /**
  * Main handler for content generation agent
@@ -223,7 +227,7 @@ async function handleRevisionRequest(request: RevisionRequest): Promise<void> {
 }
 
 /**
- * Generate content using AI with user context
+ * Generate content using Bedrock Agent with user context
  */
 async function generateContent(input: string, userPreferences: UserPreferences): Promise<ContentGenerationResponse> {
   // Create prompt template with user context
@@ -231,14 +235,14 @@ async function generateContent(input: string, userPreferences: UserPreferences):
   
   console.log('Generated prompt for content creation:', prompt.substring(0, 200) + '...');
 
-  // Simulate AI content generation (in real implementation, this would call an AI service)
-  const generatedContent = await simulateAIContentGeneration(prompt, userPreferences);
+  // Call Bedrock Agent for content generation
+  const generatedContent = await callBedrockAgent(prompt, 'content-generation');
   
-  return generatedContent;
+  return parseBedrockResponse(generatedContent, userPreferences);
 }
 
 /**
- * Revise content based on feedback
+ * Revise content based on feedback using Bedrock Agent
  */
 async function reviseContent(
   currentContent: string,
@@ -251,10 +255,10 @@ async function reviseContent(
   
   console.log('Generated prompt for content revision:', prompt.substring(0, 200) + '...');
 
-  // Simulate AI content revision
-  const revisedContent = await simulateAIContentGeneration(prompt, userPreferences);
+  // Call Bedrock Agent for content revision
+  const revisedContent = await callBedrockAgent(prompt, 'content-revision');
   
-  return revisedContent;
+  return parseBedrockResponse(revisedContent, userPreferences);
 }
 
 /**

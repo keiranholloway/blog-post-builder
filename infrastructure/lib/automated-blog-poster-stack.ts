@@ -343,6 +343,31 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       batchSize: 1, // Process one message at a time for better error handling
     }));
 
+    // Lambda function for revision processing
+    const revisionProcessor = new lambda.Function(this, 'RevisionProcessor', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'revision-processor.handler',
+      code: lambda.Code.fromAsset('lambda'),
+      timeout: cdk.Duration.minutes(5),
+      memorySize: 256,
+      environment: {
+        CONTENT_TABLE: contentTable.tableName,
+        AGENT_MESSAGES_TABLE: agentMessagesTable.tableName,
+        CONTENT_GENERATION_QUEUE: contentGenerationQueue.queueUrl,
+        IMAGE_GENERATION_QUEUE: imageGenerationQueue.queueUrl,
+        NODE_ENV: 'production',
+      },
+      deadLetterQueue: new sqs.Queue(this, 'RevisionProcessorDLQ', {
+        queueName: 'automated-blog-poster-revision-processor-dlq',
+      }),
+    });
+
+    // Grant permissions for Revision Processor
+    contentTable.grantReadWriteData(revisionProcessor);
+    agentMessagesTable.grantReadWriteData(revisionProcessor);
+    contentGenerationQueue.grantSendMessages(revisionProcessor);
+    imageGenerationQueue.grantSendMessages(revisionProcessor);
+
     // SQS event source mappings for content orchestrator
     contentOrchestrator.addEventSource(new eventsources.SqsEventSource(agentQueue, {
       batchSize: 1, // Process one message at a time for better error handling
@@ -438,6 +463,27 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
     // Analyze content for image endpoint
     const imageAnalyzeResource = imageResource.addResource('analyze');
     imageAnalyzeResource.addMethod('POST', apiIntegration);
+    
+    // Revision processing endpoints
+    const revisionResource = apiResource.addResource('revision');
+    const revisionProcessorIntegration = new apigateway.LambdaIntegration(revisionProcessor);
+    
+    // Content revision endpoint
+    const revisionContentResource = revisionResource.addResource('content');
+    revisionContentResource.addMethod('POST', revisionProcessorIntegration);
+    
+    // Image revision endpoint
+    const revisionImageResource = revisionResource.addResource('image');
+    revisionImageResource.addMethod('POST', revisionProcessorIntegration);
+    
+    // Batch revision endpoint
+    const revisionBatchResource = revisionResource.addResource('batch');
+    revisionBatchResource.addMethod('POST', revisionProcessorIntegration);
+    
+    // Revision history endpoint
+    const revisionHistoryResource = revisionResource.addResource('history');
+    const revisionHistoryIdResource = revisionHistoryResource.addResource('{id}');
+    revisionHistoryIdResource.addMethod('GET', revisionProcessorIntegration);
     
     // Input processing endpoints
     const inputResource = apiResource.addResource('input');
