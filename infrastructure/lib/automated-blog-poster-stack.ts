@@ -75,7 +75,7 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
 
     // Lambda function for API handling
     const apiHandler = new lambda.Function(this, 'ApiHandler', {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
       code: lambda.Code.fromInline(`
         exports.handler = async (event) => {
