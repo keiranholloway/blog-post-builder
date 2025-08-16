@@ -11,16 +11,21 @@ interface InputInterfaceProps {
   onAudioSubmit: (audioBlob: Blob, duration: number, type: 'voice' | 'file') => void;
   onError: (error: string) => void;
   apiUrl: string;
+  isProcessing?: boolean;
 }
 
 export const InputInterface: React.FC<InputInterfaceProps> = ({
   onContentSubmit,
   onAudioSubmit,
   onError,
-  apiUrl
+  apiUrl,
+  isProcessing: externalIsProcessing = false
 }) => {
   const [activeMode, setActiveMode] = useState<InputMode>('voice');
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Use external processing state if provided
+  const actualIsProcessing = externalIsProcessing || isProcessing;
 
   const handleVoiceRecordingComplete = async (audioBlob: Blob, duration: number) => {
     setIsProcessing(true);
@@ -72,7 +77,7 @@ export const InputInterface: React.FC<InputInterfaceProps> = ({
         <button
           className={`input-interface__mode-button ${activeMode === 'voice' ? 'input-interface__mode-button--active' : ''}`}
           onClick={() => setActiveMode('voice')}
-          disabled={isProcessing}
+          disabled={actualIsProcessing}
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
@@ -86,7 +91,7 @@ export const InputInterface: React.FC<InputInterfaceProps> = ({
         <button
           className={`input-interface__mode-button ${activeMode === 'text' ? 'input-interface__mode-button--active' : ''}`}
           onClick={() => setActiveMode('text')}
-          disabled={isProcessing}
+          disabled={actualIsProcessing}
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
@@ -97,7 +102,7 @@ export const InputInterface: React.FC<InputInterfaceProps> = ({
         <button
           className={`input-interface__mode-button ${activeMode === 'file' ? 'input-interface__mode-button--active' : ''}`}
           onClick={() => setActiveMode('file')}
-          disabled={isProcessing}
+          disabled={actualIsProcessing}
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
@@ -108,7 +113,7 @@ export const InputInterface: React.FC<InputInterfaceProps> = ({
       </div>
 
       <div className="input-interface__content">
-        {isProcessing && (
+        {actualIsProcessing && (
           <div className="input-interface__processing-overlay">
             <div className="input-interface__processing-content">
               <div className="input-interface__spinner" />

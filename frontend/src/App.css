@@ -34,6 +34,11 @@
   color: white;
 }
 
+.App__notification--info {
+  background: #2196f3;
+  color: white;
+}
+
 .App__notification-close {
   background: none;
   border: none;

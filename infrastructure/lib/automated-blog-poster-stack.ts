@@ -7,6 +7,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 export class AutomatedBlogPosterStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -157,7 +158,25 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       }),
     });
 
-    // Grant permissions
+    // Lambda function for input processing (audio and text)
+    const inputProcessor = new lambda.Function(this, 'InputProcessor', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'input-processor.handler',
+      code: lambda.Code.fromAsset('lambda'),
+      timeout: cdk.Duration.minutes(5), // Longer timeout for audio processing
+      memorySize: 512, // More memory for audio processing
+      environment: {
+        CONTENT_TABLE_NAME: contentTable.tableName,
+        AUDIO_BUCKET_NAME: audioBucket.bucketName,
+        EVENT_BUS_NAME: eventBus.eventBusName,
+        NODE_ENV: 'production',
+      },
+      deadLetterQueue: new sqs.Queue(this, 'InputProcessorDLQ', {
+        queueName: 'automated-blog-poster-input-processor-dlq',
+      }),
+    });
+
+    // Grant permissions for API Handler
     contentTable.grantReadWriteData(apiHandler);
     userTable.grantReadWriteData(apiHandler);
     agentMessagesTable.grantReadWriteData(apiHandler);
@@ -166,6 +185,22 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
     agentQueue.grantSendMessages(apiHandler);
     eventBus.grantPutEventsTo(apiHandler);
     platformCredentials.grantRead(apiHandler);
+
+    // Grant permissions for Input Processor
+    contentTable.grantReadWriteData(inputProcessor);
+    audioBucket.grantReadWrite(inputProcessor);
+    eventBus.grantPutEventsTo(inputProcessor);
+    
+    // Grant Transcribe permissions to Input Processor
+    inputProcessor.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'transcribe:StartTranscriptionJob',
+        'transcribe:GetTranscriptionJob',
+        'transcribe:ListTranscriptionJobs',
+      ],
+      resources: ['*'],
+    }));
 
     // API Gateway with GitHub Pages optimized CORS
     const api = new apigateway.RestApi(this, 'Api', {
@@ -196,7 +231,40 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
     });
 
     const apiIntegration = new apigateway.LambdaIntegration(apiHandler);
+    const inputProcessorIntegration = new apigateway.LambdaIntegration(inputProcessor);
+
+    // Root and general API routes
     api.root.addMethod('GET', apiIntegration);
+    
+    // API resource for general endpoints
+    const apiResource = api.root.addResource('api');
+    apiResource.addMethod('GET', apiIntegration);
+    
+    // Status endpoint
+    const statusResource = apiResource.addResource('status');
+    statusResource.addMethod('GET', apiIntegration);
+    
+    // Input processing endpoints
+    const inputResource = apiResource.addResource('input');
+    
+    // Audio input endpoint
+    const audioResource = inputResource.addResource('audio');
+    audioResource.addMethod('POST', inputProcessorIntegration);
+    
+    // Text input endpoint
+    const textResource = inputResource.addResource('text');
+    textResource.addMethod('POST', inputProcessorIntegration);
+    
+    // Status checking endpoint
+    const inputStatusResource = inputResource.addResource('status');
+    const inputStatusIdResource = inputStatusResource.addResource('{id}');
+    inputStatusIdResource.addMethod('GET', inputProcessorIntegration);
+    
+    // Transcription callback endpoint
+    const transcriptionCallbackResource = inputResource.addResource('transcription-callback');
+    transcriptionCallbackResource.addMethod('POST', inputProcessorIntegration);
+
+    // Catch-all proxy for any other routes (handled by apiHandler)
     api.root.addProxy({
       defaultIntegration: apiIntegration,
     });
