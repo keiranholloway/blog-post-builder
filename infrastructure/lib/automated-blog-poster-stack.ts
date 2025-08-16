@@ -8,6 +8,8 @@ import * as events from 'aws-cdk-lib/aws-events';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
+import * as eventsources from 'aws-cdk-lib/aws-lambda-event-sources';
 
 export class AutomatedBlogPosterStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -176,6 +178,49 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       }),
     });
 
+    // SQS Queues for agent communication
+    const contentGenerationQueue = new sqs.Queue(this, 'ContentGenerationQueue', {
+      queueName: 'automated-blog-poster-content-generation',
+      visibilityTimeout: cdk.Duration.minutes(15),
+      deadLetterQueue: {
+        queue: new sqs.Queue(this, 'ContentGenerationDLQ', {
+          queueName: 'automated-blog-poster-content-generation-dlq',
+        }),
+        maxReceiveCount: 3,
+      },
+    });
+
+    const imageGenerationQueue = new sqs.Queue(this, 'ImageGenerationQueue', {
+      queueName: 'automated-blog-poster-image-generation',
+      visibilityTimeout: cdk.Duration.minutes(10),
+      deadLetterQueue: {
+        queue: new sqs.Queue(this, 'ImageGenerationDLQ', {
+          queueName: 'automated-blog-poster-image-generation-dlq',
+        }),
+        maxReceiveCount: 3,
+      },
+    });
+
+    // Lambda function for content orchestration
+    const contentOrchestrator = new lambda.Function(this, 'ContentOrchestrator', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'content-orchestrator.handler',
+      code: lambda.Code.fromAsset('lambda'),
+      timeout: cdk.Duration.minutes(5),
+      memorySize: 256,
+      environment: {
+        CONTENT_TABLE_NAME: contentTable.tableName,
+        AGENT_MESSAGES_TABLE_NAME: agentMessagesTable.tableName,
+        CONTENT_GENERATION_QUEUE_URL: contentGenerationQueue.queueUrl,
+        IMAGE_GENERATION_QUEUE_URL: imageGenerationQueue.queueUrl,
+        EVENT_BUS_NAME: eventBus.eventBusName,
+        NODE_ENV: 'production',
+      },
+      deadLetterQueue: new sqs.Queue(this, 'ContentOrchestratorDLQ', {
+        queueName: 'automated-blog-poster-content-orchestrator-dlq',
+      }),
+    });
+
     // Grant permissions for API Handler
     contentTable.grantReadWriteData(apiHandler);
     userTable.grantReadWriteData(apiHandler);
@@ -200,6 +245,78 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
         'transcribe:ListTranscriptionJobs',
       ],
       resources: ['*'],
+    }));
+
+    // Grant permissions for Content Orchestrator
+    contentTable.grantReadWriteData(contentOrchestrator);
+    agentMessagesTable.grantReadWriteData(contentOrchestrator);
+    contentGenerationQueue.grantSendMessages(contentOrchestrator);
+    imageGenerationQueue.grantSendMessages(contentOrchestrator);
+    contentGenerationQueue.grantConsumeMessages(contentOrchestrator);
+    imageGenerationQueue.grantConsumeMessages(contentOrchestrator);
+    eventBus.grantPutEventsTo(contentOrchestrator);
+
+    // EventBridge rules to trigger content orchestrator
+    const inputProcessorRule = new events.Rule(this, 'InputProcessorRule', {
+      eventBus: eventBus,
+      eventPattern: {
+        source: ['automated-blog-poster.input-processor'],
+        detailType: ['Audio Processing Completed', 'Text Processing Completed'],
+      },
+      targets: [new targets.LambdaFunction(contentOrchestrator)],
+    });
+
+    const contentAgentRule = new events.Rule(this, 'ContentAgentRule', {
+      eventBus: eventBus,
+      eventPattern: {
+        source: ['automated-blog-poster.content-agent'],
+        detailType: ['Content Generation Completed', 'Content Generation Failed'],
+      },
+      targets: [new targets.LambdaFunction(contentOrchestrator)],
+    });
+
+    const imageAgentRule = new events.Rule(this, 'ImageAgentRule', {
+      eventBus: eventBus,
+      eventPattern: {
+        source: ['automated-blog-poster.image-agent'],
+        detailType: ['Image Generation Completed', 'Image Generation Failed'],
+      },
+      targets: [new targets.LambdaFunction(contentOrchestrator)],
+    });
+
+    // Lambda function for content generation agent
+    const contentGenerationAgent = new lambda.Function(this, 'ContentGenerationAgent', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'content-generation-agent.handler',
+      code: lambda.Code.fromAsset('lambda'),
+      timeout: cdk.Duration.minutes(10), // Longer timeout for AI processing
+      memorySize: 512, // More memory for content processing
+      environment: {
+        USER_TABLE_NAME: userTable.tableName,
+        CONTENT_TABLE_NAME: contentTable.tableName,
+        EVENT_BUS_NAME: eventBus.eventBusName,
+        ORCHESTRATOR_QUEUE_URL: agentQueue.queueUrl,
+        NODE_ENV: 'production',
+      },
+      deadLetterQueue: new sqs.Queue(this, 'ContentGenerationAgentDLQ', {
+        queueName: 'automated-blog-poster-content-generation-agent-dlq',
+      }),
+    });
+
+    // Grant permissions for Content Generation Agent
+    userTable.grantReadData(contentGenerationAgent);
+    contentTable.grantReadWriteData(contentGenerationAgent);
+    eventBus.grantPutEventsTo(contentGenerationAgent);
+    agentQueue.grantSendMessages(contentGenerationAgent);
+
+    // SQS event source mappings for content generation agent
+    contentGenerationAgent.addEventSource(new eventsources.SqsEventSource(contentGenerationQueue, {
+      batchSize: 1, // Process one message at a time for better error handling
+    }));
+
+    // SQS event source mappings for content orchestrator
+    contentOrchestrator.addEventSource(new eventsources.SqsEventSource(agentQueue, {
+      batchSize: 1, // Process one message at a time for better error handling
     }));
 
     // API Gateway with GitHub Pages optimized CORS
@@ -239,6 +356,34 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
     // Status endpoint
     const statusResource = apiResource.addResource('status');
     statusResource.addMethod('GET', apiIntegration);
+    
+    // Content generation endpoints
+    const contentResource = apiResource.addResource('content');
+    
+    // Generate content endpoint
+    const generateResource = contentResource.addResource('generate');
+    generateResource.addMethod('POST', apiIntegration);
+    
+    // Revise content endpoint
+    const reviseResource = contentResource.addResource('revise');
+    reviseResource.addMethod('POST', apiIntegration);
+    
+    // Content status endpoint
+    const contentStatusResource = contentResource.addResource('status');
+    const contentStatusIdResource = contentStatusResource.addResource('{id}');
+    contentStatusIdResource.addMethod('GET', apiIntegration);
+    
+    // Get content endpoint
+    const contentIdResource = contentResource.addResource('{id}');
+    contentIdResource.addMethod('GET', apiIntegration);
+    
+    // Get content messages endpoint
+    const contentMessagesResource = contentIdResource.addResource('messages');
+    contentMessagesResource.addMethod('GET', apiIntegration);
+    
+    // Validate content endpoint
+    const validateResource = contentResource.addResource('validate');
+    validateResource.addMethod('POST', apiIntegration);
     
     // Input processing endpoints
     const inputResource = apiResource.addResource('input');
