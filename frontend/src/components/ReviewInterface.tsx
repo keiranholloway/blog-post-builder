@@ -72,7 +72,7 @@ export const ReviewInterface: React.FC<ReviewInterfaceProps> = ({
       }));
 
       // Reload content if processing is complete
-      if (status.status === 'ready' || status.status === 'completed') {
+      if (status.status === 'completed') {
         await loadContent();
       }
     } catch (err) {
@@ -151,7 +151,7 @@ export const ReviewInterface: React.FC<ReviewInterfaceProps> = ({
   }
 
   const isProcessing = processingStatus.content === 'processing' || processingStatus.image === 'processing';
-  const canApprove = content.status === 'ready' && !isProcessing;
+  const canApprove = content.status === 'ready_for_review' && !isProcessing;
 
   return (
     <div className={`review-interface ${className}`}>

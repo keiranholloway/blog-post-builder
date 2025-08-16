@@ -1,12 +1,14 @@
 export type ContentStatus = 
   | 'processing' 
   | 'draft' 
-  | 'ready_for_review' 
+  | 'ready_for_review'
+  | 'ready'
   | 'revision_requested' 
   | 'approved' 
   | 'publishing' 
   | 'published' 
-  | 'failed';
+  | 'failed'
+  | 'completed';
 
 export interface Revision {
   id: string;
@@ -15,7 +17,9 @@ export interface Revision {
   content: string;
   feedback: string;
   createdAt: Date;
+  timestamp: Date;
   agentType: 'content' | 'image';
+  type: 'content' | 'image';
 }
 
 export interface PublishResult {
