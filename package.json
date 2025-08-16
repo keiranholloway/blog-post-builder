@@ -1,0 +1,28 @@
+{
+  "name": "automated-blog-poster",
+  "version": "1.0.0",
+  "description": "A serverless system that transforms voice input into published blog posts",
+  "main": "index.js",
+  "scripts": {
+    "install:all": "npm install && cd frontend && npm install && cd ../infrastructure && npm install",
+    "dev:frontend": "cd frontend && npm start",
+    "build:frontend": "cd frontend && npm run build",
+    "deploy:infrastructure": "cd infrastructure && npm run deploy",
+    "test": "npm run test:frontend && npm run test:infrastructure",
+    "test:frontend": "cd frontend && npm test",
+    "test:infrastructure": "cd infrastructure && npm test"
+  },
+  "keywords": [
+    "blog",
+    "voice-to-text",
+    "ai",
+    "serverless",
+    "aws",
+    "publishing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}
