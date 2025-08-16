@@ -1,9 +1,21 @@
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 
-// Mock AWS SDK clients
+// Set environment variables BEFORE importing the handler
+process.env.AUDIO_BUCKET_NAME = 'test-audio-bucket';
+process.env.CONTENT_TABLE_NAME = 'test-content-table';
+process.env.EVENT_BUS_NAME = 'test-event-bus';
+process.env.AWS_REGION = 'us-east-1';
+
+// Create mock functions that we can access in tests
+const mockS3Send = jest.fn();
+const mockTranscribeSend = jest.fn();
+const mockDynamoSend = jest.fn();
+const mockEventBridgeSend = jest.fn();
+
+// Mock AWS SDK clients BEFORE importing the handler
 jest.mock('@aws-sdk/client-s3', () => ({
   S3Client: jest.fn(() => ({
-    send: jest.fn(),
+    send: mockS3Send,
   })),
   PutObjectCommand: jest.fn(),
   GetObjectCommand: jest.fn(),
@@ -11,7 +23,7 @@ jest.mock('@aws-sdk/client-s3', () => ({
 
 jest.mock('@aws-sdk/client-transcribe', () => ({
   TranscribeClient: jest.fn(() => ({
-    send: jest.fn(),
+    send: mockTranscribeSend,
   })),
   StartTranscriptionJobCommand: jest.fn(),
   GetTranscriptionJobCommand: jest.fn(),
@@ -25,7 +37,7 @@ jest.mock('@aws-sdk/client-transcribe', () => ({
 
 jest.mock('@aws-sdk/client-dynamodb', () => ({
   DynamoDBClient: jest.fn(() => ({
-    send: jest.fn(),
+    send: mockDynamoSend,
   })),
   PutItemCommand: jest.fn(),
   UpdateItemCommand: jest.fn(),
@@ -34,7 +46,7 @@ jest.mock('@aws-sdk/client-dynamodb', () => ({
 
 jest.mock('@aws-sdk/client-eventbridge', () => ({
   EventBridgeClient: jest.fn(() => ({
-    send: jest.fn(),
+    send: mockEventBridgeSend,
   })),
   PutEventsCommand: jest.fn(),
 }));
@@ -44,17 +56,13 @@ jest.mock('uuid', () => ({
   v4: jest.fn(() => 'test-uuid-123'),
 }));
 
-import { handler } from '../lambda/input-processor';
+// NOW import the handler after mocks are set up
 import { S3Client } from '@aws-sdk/client-s3';
 import { TranscribeClient } from '@aws-sdk/client-transcribe';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 
 describe('Input Processor Lambda', () => {
-  let mockS3Send: jest.Mock;
-  let mockTranscribeSend: jest.Mock;
-  let mockDynamoSend: jest.Mock;
-  let mockEventBridgeSend: jest.Mock;
   const mockContext: Context = {
     callbackWaitsForEmptyEventLoop: false,
     functionName: 'test-function',
@@ -70,27 +78,14 @@ describe('Input Processor Lambda', () => {
     succeed: jest.fn(),
   };
 
-  // Set environment variables
-  beforeAll(() => {
-    process.env.AUDIO_BUCKET_NAME = 'test-audio-bucket';
-    process.env.CONTENT_TABLE_NAME = 'test-content-table';
-    process.env.EVENT_BUS_NAME = 'test-event-bus';
-    process.env.AWS_REGION = 'us-east-1';
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Get mock functions from the mocked clients
-    const s3Client = new S3Client({});
-    const transcribeClient = new TranscribeClient({});
-    const dynamoClient = new DynamoDBClient({});
-    const eventBridgeClient = new EventBridgeClient({});
-    
-    mockS3Send = s3Client.send as jest.Mock;
-    mockTranscribeSend = transcribeClient.send as jest.Mock;
-    mockDynamoSend = dynamoClient.send as jest.Mock;
-    mockEventBridgeSend = eventBridgeClient.send as jest.Mock;
+    // Reset all mock functions
+    mockS3Send.mockReset();
+    mockTranscribeSend.mockReset();
+    mockDynamoSend.mockReset();
+    mockEventBridgeSend.mockReset();
   });
 
   describe('OPTIONS requests', () => {

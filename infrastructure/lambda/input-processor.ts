@@ -49,6 +49,17 @@ const AUDIO_BUCKET = process.env.AUDIO_BUCKET_NAME!;
 const CONTENT_TABLE = process.env.CONTENT_TABLE_NAME!;
 const EVENT_BUS = process.env.EVENT_BUS_NAME!;
 
+// Validate required environment variables
+if (!CONTENT_TABLE) {
+  throw new Error('CONTENT_TABLE_NAME environment variable is required');
+}
+if (!EVENT_BUS) {
+  throw new Error('EVENT_BUS_NAME environment variable is required');
+}
+if (!AUDIO_BUCKET) {
+  throw new Error('AUDIO_BUCKET_NAME environment variable is required');
+}
+
 export const handler = async (
   event: APIGatewayProxyEvent,
   context: Context
@@ -378,24 +389,41 @@ async function handleTextInput(
       item.transcription = { S: inputRecord.transcription };
     }
 
-    await dynamoClient.send(new PutItemCommand({
-      TableName: CONTENT_TABLE,
-      Item: item,
-    }));
+    console.log('About to write to DynamoDB table:', CONTENT_TABLE);
+    console.log('DynamoDB item:', JSON.stringify(item, null, 2));
+    
+    try {
+      await dynamoClient.send(new PutItemCommand({
+        TableName: CONTENT_TABLE,
+        Item: item,
+      }));
+      console.log('DynamoDB write successful');
+    } catch (dbError) {
+      console.error('DynamoDB error:', dbError);
+      throw new Error(`DynamoDB write failed: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`);
+    }
 
-    // Publish event for text processing completed
-    await eventBridgeClient.send(new PutEventsCommand({
-      Entries: [{
-        Source: 'automated-blog-poster.input-processor',
-        DetailType: 'Text Processing Completed',
-        Detail: JSON.stringify({
-          inputId,
-          userId: request.userId,
-          transcription: processedText,
-        }),
-        EventBusName: EVENT_BUS,
-      }],
-    }));
+    console.log('About to publish to EventBridge:', EVENT_BUS);
+    
+    try {
+      // Publish event for text processing completed
+      await eventBridgeClient.send(new PutEventsCommand({
+        Entries: [{
+          Source: 'automated-blog-poster.input-processor',
+          DetailType: 'Text Processing Completed',
+          Detail: JSON.stringify({
+            inputId,
+            userId: request.userId,
+            transcription: processedText,
+          }),
+          EventBusName: EVENT_BUS,
+        }],
+      }));
+      console.log('EventBridge publish successful');
+    } catch (eventError) {
+      console.error('EventBridge error:', eventError);
+      throw new Error(`EventBridge publish failed: ${eventError instanceof Error ? eventError.message : 'Unknown error'}`);
+    }
 
     const response: SuccessResponse = {
       message: 'Text input processed successfully',
