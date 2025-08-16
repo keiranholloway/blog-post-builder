@@ -324,7 +324,11 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       restApiName: 'Automated Blog Poster API',
       description: 'API for the automated blog poster system',
       defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS, // Allow all origins for now
+        allowOrigins: [
+          'https://keiranholloway.github.io', // GitHub Pages origin
+          'http://localhost:3000', // Local development
+          'http://localhost:5173', // Vite dev server
+        ],
         allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowHeaders: [
           'Content-Type',

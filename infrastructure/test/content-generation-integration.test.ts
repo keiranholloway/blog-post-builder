@@ -17,7 +17,7 @@ function createAPIGatewayEvent(
     httpMethod: method,
     path,
     headers: { 'Content-Type': 'application/json' },
-    body,
+    body: body || null,
     queryStringParameters: null,
     pathParameters: null,
     stageVariables: null,
