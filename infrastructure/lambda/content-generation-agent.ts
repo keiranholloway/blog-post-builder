@@ -368,69 +368,163 @@ function getLengthGuideline(length?: string): string {
 }
 
 /**
- * Simulate AI content generation (placeholder for actual AI integration)
+ * Call Bedrock Agent for content generation
  */
-async function simulateAIContentGeneration(
-  prompt: string,
-  userPreferences: UserPreferences
-): Promise<ContentGenerationResponse> {
-  // In a real implementation, this would call an AI service like OpenAI, Claude, etc.
-  // For now, we'll simulate the response
-  
-  const simulatedContent = {
-    title: "Transforming Ideas into Action: A Guide to Effective Implementation",
-    content: `
-# Introduction
+async function callBedrockAgent(prompt: string, sessionId: string): Promise<string> {
+  try {
+    const command = new InvokeAgentCommand({
+      agentId: BEDROCK_AGENT_ID,
+      agentAliasId: BEDROCK_AGENT_ALIAS_ID,
+      sessionId: sessionId,
+      inputText: prompt,
+    });
 
-Every great achievement starts with an idea, but the journey from concept to reality is where most dreams either flourish or fade. The ability to transform abstract thoughts into concrete actions is what separates successful individuals and organizations from those who remain perpetually in the planning phase.
-
-# The Implementation Mindset
-
-Success in implementation requires more than just good intentions. It demands a fundamental shift in how we approach our goals and challenges. This mindset encompasses several key principles:
-
-## Clarity of Vision
-Before taking any action, it's crucial to have a crystal-clear understanding of what you're trying to achieve. Vague goals lead to vague results.
-
-## Systematic Approach
-Breaking down large objectives into manageable, actionable steps makes even the most ambitious projects achievable.
-
-## Consistent Execution
-Regular, consistent action trumps sporadic bursts of intense effort every time.
-
-# Overcoming Common Obstacles
-
-The path from idea to implementation is rarely smooth. Understanding and preparing for common obstacles can make the difference between success and failure.
-
-## Analysis Paralysis
-The tendency to over-analyze and under-execute is one of the biggest killers of good ideas. Sometimes, imperfect action is better than perfect inaction.
-
-## Resource Constraints
-Limited time, money, or personnel are common challenges, but they often force creative solutions that wouldn't have emerged otherwise.
-
-# Conclusion
-
-The gap between having great ideas and implementing them successfully is where true value is created. By developing the right mindset, systems, and habits, anyone can become more effective at turning their vision into reality.
-
-Remember: the world doesn't need more ideas—it needs more people who can execute on the ideas they already have.
-    `.trim(),
-    summary: "A comprehensive guide on transforming ideas into actionable results through systematic implementation and overcoming common obstacles.",
-    wordCount: 285,
-    readingTime: 2,
-    tags: ["productivity", "implementation", "goal-setting", "success", "mindset"],
-    quality: {
-      score: 8.5,
-      issues: [],
-      suggestions: [
-        "Consider adding specific examples or case studies",
-        "Could benefit from actionable tips or checklists"
-      ]
+    console.log(`Calling Bedrock Agent ${BEDROCK_AGENT_ID} with session ${sessionId}`);
+    
+    const response = await bedrockAgentClient.send(command);
+    
+    // Process the streaming response
+    let fullResponse = '';
+    if (response.completion) {
+      for await (const chunk of response.completion) {
+        if (chunk.chunk?.bytes) {
+          const chunkText = new TextDecoder().decode(chunk.chunk.bytes);
+          fullResponse += chunkText;
+        }
+      }
     }
+
+    console.log(`Bedrock Agent response length: ${fullResponse.length} characters`);
+    return fullResponse;
+
+  } catch (error) {
+    console.error('Error calling Bedrock Agent:', error);
+    throw new Error(`Bedrock Agent call failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Parse Bedrock Agent response into structured content format
+ */
+function parseBedrockResponse(response: string, userPreferences: UserPreferences): ContentGenerationResponse {
+  // Extract title (look for first # heading or create from first line)
+  const titleMatch = response.match(/^#\s+(.+)$/m);
+  const title = titleMatch ? titleMatch[1].trim() : 
+    response.split('\n')[0].replace(/^#+\s*/, '').trim() || 
+    'Generated Blog Post';
+
+  // Clean up content (remove title if it was extracted)
+  let content = response;
+  if (titleMatch) {
+    content = response.replace(titleMatch[0], '').trim();
+  }
+
+  // Calculate metrics
+  const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
+  const readingTime = Math.max(1, Math.ceil(wordCount / 200)); // 200 words per minute
+
+  // Extract potential tags from content (look for technical terms, topics)
+  const tags = extractTagsFromContent(content);
+
+  // Generate summary (first paragraph or first 200 characters)
+  const summary = generateSummary(content);
+
+  // Assess quality
+  const quality = assessContentQuality(content, wordCount);
+
+  return {
+    title,
+    content,
+    summary,
+    wordCount,
+    readingTime,
+    tags,
+    quality
   };
+}
 
-  // Simulate processing time
-  await new Promise(resolve => setTimeout(resolve, 1000));
+/**
+ * Extract relevant tags from content
+ */
+function extractTagsFromContent(content: string): string[] {
+  const commonTechTerms = [
+    'aws', 'azure', 'gcp', 'cloud', 'kubernetes', 'docker', 'serverless',
+    'devops', 'finops', 'infrastructure', 'architecture', 'security',
+    'platform engineering', 'backstage', 'cost optimization', 'automation',
+    'monitoring', 'observability', 'microservices', 'containers'
+  ];
 
-  return simulatedContent;
+  const contentLower = content.toLowerCase();
+  const foundTags = commonTechTerms.filter(term => 
+    contentLower.includes(term.toLowerCase())
+  );
+
+  // Add some default tags based on Keiran's expertise
+  const defaultTags = ['cloud', 'enterprise', 'technology'];
+  
+  return [...new Set([...foundTags, ...defaultTags])].slice(0, 8);
+}
+
+/**
+ * Generate summary from content
+ */
+function generateSummary(content: string): string {
+  // Find first paragraph or first 200 characters
+  const paragraphs = content.split('\n\n').filter(p => p.trim().length > 0);
+  
+  if (paragraphs.length > 0) {
+    const firstParagraph = paragraphs[0].replace(/^#+\s*/, '').trim();
+    if (firstParagraph.length <= 300) {
+      return firstParagraph;
+    }
+  }
+
+  // Fallback to first 200 characters
+  return content.substring(0, 200).trim() + '...';
+}
+
+/**
+ * Assess content quality
+ */
+function assessContentQuality(content: string, wordCount: number): {
+  score: number;
+  issues: string[];
+  suggestions: string[];
+} {
+  const issues: string[] = [];
+  const suggestions: string[] = [];
+  let score = 10;
+
+  // Check word count
+  if (wordCount < 300) {
+    issues.push('Content is quite short for a blog post');
+    score -= 2;
+  } else if (wordCount < 500) {
+    suggestions.push('Consider expanding the content for better depth');
+    score -= 0.5;
+  }
+
+  // Check for structure
+  if (!content.includes('#')) {
+    suggestions.push('Consider adding section headings for better structure');
+    score -= 0.5;
+  }
+
+  // Check for paragraphs
+  const paragraphs = content.split('\n\n').filter(p => p.trim().length > 0);
+  if (paragraphs.length < 3) {
+    suggestions.push('Consider breaking content into more paragraphs for readability');
+    score -= 0.5;
+  }
+
+  // Ensure minimum quality
+  score = Math.max(6.0, score);
+
+  return {
+    score: Math.round(score * 10) / 10,
+    issues,
+    suggestions
+  };
 }
 
 /**

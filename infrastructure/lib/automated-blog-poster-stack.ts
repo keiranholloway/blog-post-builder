@@ -296,6 +296,8 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
         CONTENT_TABLE_NAME: contentTable.tableName,
         EVENT_BUS_NAME: eventBus.eventBusName,
         ORCHESTRATOR_QUEUE_URL: agentQueue.queueUrl,
+        BEDROCK_AGENT_ID: 'PLACEHOLDER_AGENT_ID', // Will be updated after agent creation
+        BEDROCK_AGENT_ALIAS_ID: 'TSTALIASID', // Default test alias
         NODE_ENV: 'production',
       },
       deadLetterQueue: new sqs.Queue(this, 'ContentGenerationAgentDLQ', {
@@ -308,6 +310,17 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
     contentTable.grantReadWriteData(contentGenerationAgent);
     eventBus.grantPutEventsTo(contentGenerationAgent);
     agentQueue.grantSendMessages(contentGenerationAgent);
+    
+    // Grant Bedrock Agent permissions
+    contentGenerationAgent.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'bedrock:InvokeAgent',
+        'bedrock:GetAgent',
+        'bedrock:ListAgents'
+      ],
+      resources: ['*'], // Will be restricted to specific agent after creation
+    }));
 
     // SQS event source mappings for content generation agent
     contentGenerationAgent.addEventSource(new eventsources.SqsEventSource(contentGenerationQueue, {
