@@ -54,6 +54,12 @@ export const handler = async (
   context: Context
 ): Promise<APIGatewayProxyResult> => {
   console.log('Input Processor Event:', JSON.stringify(event, null, 2));
+  console.log('Environment variables:', {
+    CONTENT_TABLE_NAME: process.env.CONTENT_TABLE_NAME,
+    AUDIO_BUCKET_NAME: process.env.AUDIO_BUCKET_NAME,
+    EVENT_BUS_NAME: process.env.EVENT_BUS_NAME,
+    AWS_REGION: process.env.AWS_REGION
+  });
 
   // Allowed origins for CORS
   const allowedOrigins = [
@@ -85,6 +91,8 @@ export const handler = async (
 
     const path = event.path;
     const method = event.httpMethod;
+    
+    console.log('Processing request:', { method, path });
 
     // Route: POST /api/input/audio - Handle audio file upload
     if (method === 'POST' && path === '/api/input/audio') {
@@ -93,7 +101,13 @@ export const handler = async (
 
     // Route: POST /api/input/text - Handle text input
     if (method === 'POST' && path === '/api/input/text') {
-      return await handleTextInput(event, context, corsHeaders);
+      console.log('Handling text input request');
+      try {
+        return await handleTextInput(event, context, corsHeaders);
+      } catch (error) {
+        console.error('Error in handleTextInput:', error);
+        throw error;
+      }
     }
 
     // Route: GET /api/input/status/{id} - Check processing status
@@ -122,6 +136,7 @@ export const handler = async (
 
   } catch (error) {
     console.error('Unhandled error in input processor:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
 
     const errorResponse: ErrorResponse = {
       error: 'Internal Server Error',
@@ -299,11 +314,20 @@ async function handleTextInput(
       EVENT_BUS: EVENT_BUS
     });
     
+    console.log('Request body:', event.body);
+    
     if (!event.body) {
       throw new Error('Request body is required');
     }
 
-    const request: TextInputRequest = JSON.parse(event.body);
+    let request: TextInputRequest;
+    try {
+      request = JSON.parse(event.body);
+      console.log('Parsed request:', request);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      throw new Error('Invalid JSON in request body');
+    }
     
     // Validate request
     const validation = validateTextInputRequest(request);
