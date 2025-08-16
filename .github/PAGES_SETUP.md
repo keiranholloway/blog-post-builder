@@ -2,14 +2,17 @@
 
 ## Manual Configuration Required
 
-GitHub Pages must be enabled manually in the repository settings:
+GitHub Pages must be configured to use GitHub Actions (NOT branch deployment):
 
 1. Go to repository **Settings**
 2. Scroll to **Pages** section in the left sidebar
-3. Under **Source**, select "Deploy from a branch"
-4. Select **main** branch
-5. Select **/ (root)** folder
-6. Click **Save**
+3. Under **Source**, select **"GitHub Actions"** (NOT "Deploy from a branch")
+4. This will use the workflow in `.github/workflows/deploy.yml`
+5. The workflow will automatically deploy the built React app from `frontend/build`
+
+## IMPORTANT: Do NOT use "Deploy from a branch"
+- If you select "Deploy from a branch", it will serve README.md as the index page
+- Always use "GitHub Actions" as the source for this project
 
 ## Verification
 
