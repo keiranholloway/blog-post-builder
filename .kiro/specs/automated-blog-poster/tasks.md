@@ -87,7 +87,8 @@
   - Write tests for orchestration workflows
   - _Requirements: 2.1, 2.6_
 
-- [x] 7. Create content generation agent integration
+- [-] 7. Create content generation agent integration
+
 
 
 
@@ -101,6 +102,11 @@
   - _Requirements: 2.1, 2.2, 2.5_
 
 - [ ] 8. Implement image generation agent system
+
+
+
+
+
   - Create MCP server integration for AI image generation
   - Build image generation agent communication interface
   - Implement content analysis for determining appropriate image concepts

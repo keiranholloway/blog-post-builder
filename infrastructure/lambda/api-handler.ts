@@ -138,6 +138,16 @@ export const handler = async (
       return await handleContentValidation(event, context, corsHeaders);
     }
 
+    // Image generation endpoints
+    if (method === 'GET' && path.startsWith('/api/image/status/')) {
+      const contentId = path.split('/').pop();
+      return await handleImageStatus(contentId!, context, corsHeaders);
+    }
+
+    if (method === 'POST' && path === '/api/image/analyze') {
+      return await handleImageAnalysis(event, context, corsHeaders);
+    }
+
     // Default 404 for unmatched routes
     const errorResponse: ErrorResponse = {
       error: 'Not Found',
@@ -584,6 +594,142 @@ async function handleContentValidation(
       body: JSON.stringify({
         error: 'Internal Server Error',
         message: error instanceof Error ? error.message : 'Failed to validate content',
+        requestId: context.awsRequestId,
+      }),
+    };
+  }
+}
+
+/**
+ * Handle image status request
+ */
+async function handleImageStatus(
+  contentId: string,
+  context: Context,
+  corsHeaders: Record<string, string>
+): Promise<APIGatewayProxyResult> {
+  try {
+    const result = await dynamoClient.send(new GetItemCommand({
+      TableName: process.env.CONTENT_TABLE_NAME!,
+      Key: {
+        id: { S: contentId },
+      },
+    }));
+
+    if (!result.Item) {
+      return {
+        statusCode: 404,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          error: 'Not Found',
+          message: 'Content not found',
+          requestId: context.awsRequestId,
+        }),
+      };
+    }
+
+    const status = result.Item.status.S!;
+    const imageUrl = result.Item.imageUrl?.S;
+    const error = result.Item.error?.S;
+
+    let imageStatus: 'pending' | 'generating' | 'completed' | 'failed' = 'pending';
+    
+    if (status === 'generating_image') {
+      imageStatus = 'generating';
+    } else if (status === 'image_generated' && imageUrl) {
+      imageStatus = 'completed';
+    } else if (status === 'image_generation_failed') {
+      imageStatus = 'failed';
+    }
+
+    return {
+      statusCode: 200,
+      headers: corsHeaders,
+      body: JSON.stringify({
+        contentId,
+        status: imageStatus,
+        imageUrl,
+        error,
+      }),
+    };
+
+  } catch (error) {
+    console.error('Error getting image status:', error);
+    return {
+      statusCode: 500,
+      headers: corsHeaders,
+      body: JSON.stringify({
+        error: 'Internal Server Error',
+        message: error instanceof Error ? error.message : 'Failed to get image status',
+        requestId: context.awsRequestId,
+      }),
+    };
+  }
+}
+
+/**
+ * Handle image analysis request
+ */
+async function handleImageAnalysis(
+  event: APIGatewayProxyEvent,
+  context: Context,
+  corsHeaders: Record<string, string>
+): Promise<APIGatewayProxyResult> {
+  try {
+    const body = JSON.parse(event.body || '{}');
+    const { content } = body;
+
+    if (!content) {
+      return {
+        statusCode: 400,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          error: 'Bad Request',
+          message: 'content is required',
+          requestId: context.awsRequestId,
+        }),
+      };
+    }
+
+    // Analyze content to generate image prompt
+    const words = content.toLowerCase().split(/\s+/);
+    const keyWords = words.filter((word: string) => 
+      word.length > 4 && 
+      !['that', 'this', 'with', 'from', 'they', 'have', 'will', 'been', 'were', 'said', 'each', 'which', 'their', 'time', 'would', 'there', 'could', 'other'].includes(word)
+    );
+    
+    // Take first few key concepts
+    const concepts = keyWords.slice(0, 3).join(', ');
+    
+    // Determine style based on content
+    let style = 'professional';
+    if (content.toLowerCase().includes('creative') || content.toLowerCase().includes('art')) {
+      style = 'creative';
+    } else if (content.toLowerCase().includes('technical') || content.toLowerCase().includes('code')) {
+      style = 'technical';
+    } else if (content.toLowerCase().includes('minimal') || content.toLowerCase().includes('simple')) {
+      style = 'minimal';
+    }
+    
+    const prompt = `clean, modern, professional illustration representing ${concepts}, high quality, detailed`;
+
+    return {
+      statusCode: 200,
+      headers: corsHeaders,
+      body: JSON.stringify({
+        prompt,
+        style,
+      }),
+    };
+
+  } catch (error) {
+    console.error('Error analyzing content for image:', error);
+    return {
+      statusCode: 500,
+      headers: corsHeaders,
+      body: JSON.stringify({
+        error: 'Internal Server Error',
+        message: error instanceof Error ? error.message : 'Failed to analyze content',
         requestId: context.awsRequestId,
       }),
     };

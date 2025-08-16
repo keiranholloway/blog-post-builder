@@ -144,6 +144,12 @@ async function handleAudioUpload(
   corsHeaders: Record<string, string>
 ): Promise<APIGatewayProxyResult> {
   try {
+    console.log('Environment variables:', {
+      CONTENT_TABLE: CONTENT_TABLE,
+      AUDIO_BUCKET: AUDIO_BUCKET,
+      EVENT_BUS: EVENT_BUS
+    });
+    
     if (!event.body) {
       throw new Error('Request body is required');
     }
@@ -269,7 +275,15 @@ async function handleAudioUpload(
 
   } catch (error) {
     console.error('Error in handleAudioUpload:', error);
-    throw error;
+    return {
+      statusCode: 500,
+      headers: corsHeaders,
+      body: JSON.stringify({
+        error: 'Internal Server Error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        requestId: context.awsRequestId,
+      }),
+    };
   }
 }
 
@@ -280,6 +294,11 @@ async function handleTextInput(
   corsHeaders: Record<string, string>
 ): Promise<APIGatewayProxyResult> {
   try {
+    console.log('Text input - Environment variables:', {
+      CONTENT_TABLE: CONTENT_TABLE,
+      EVENT_BUS: EVENT_BUS
+    });
+    
     if (!event.body) {
       throw new Error('Request body is required');
     }
@@ -371,7 +390,15 @@ async function handleTextInput(
 
   } catch (error) {
     console.error('Error in handleTextInput:', error);
-    throw error;
+    return {
+      statusCode: 500,
+      headers: corsHeaders,
+      body: JSON.stringify({
+        error: 'Internal Server Error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        requestId: context.awsRequestId,
+      }),
+    };
   }
 }
 

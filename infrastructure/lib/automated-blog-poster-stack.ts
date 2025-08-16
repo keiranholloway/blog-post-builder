@@ -314,6 +314,35 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       batchSize: 1, // Process one message at a time for better error handling
     }));
 
+    // Lambda function for image generation agent
+    const imageGenerationAgent = new lambda.Function(this, 'ImageGenerationAgent', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'image-generation-agent.handler',
+      code: lambda.Code.fromAsset('lambda'),
+      timeout: cdk.Duration.minutes(10), // Longer timeout for image generation
+      memorySize: 512, // More memory for image processing
+      environment: {
+        CONTENT_TABLE: contentTable.tableName,
+        IMAGE_BUCKET: imageBucket.bucketName,
+        ORCHESTRATOR_QUEUE: agentQueue.queueUrl,
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
+        NODE_ENV: 'production',
+      },
+      deadLetterQueue: new sqs.Queue(this, 'ImageGenerationAgentDLQ', {
+        queueName: 'automated-blog-poster-image-generation-agent-dlq',
+      }),
+    });
+
+    // Grant permissions for Image Generation Agent
+    contentTable.grantReadWriteData(imageGenerationAgent);
+    imageBucket.grantReadWrite(imageGenerationAgent);
+    agentQueue.grantSendMessages(imageGenerationAgent);
+
+    // SQS event source mappings for image generation agent
+    imageGenerationAgent.addEventSource(new eventsources.SqsEventSource(imageGenerationQueue, {
+      batchSize: 1, // Process one message at a time for better error handling
+    }));
+
     // SQS event source mappings for content orchestrator
     contentOrchestrator.addEventSource(new eventsources.SqsEventSource(agentQueue, {
       batchSize: 1, // Process one message at a time for better error handling
@@ -388,6 +417,27 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
     // Validate content endpoint
     const validateResource = contentResource.addResource('validate');
     validateResource.addMethod('POST', apiIntegration);
+    
+    // Image generation endpoints
+    const imageResource = apiResource.addResource('image');
+    const imageGenerationIntegration = new apigateway.LambdaIntegration(imageGenerationAgent);
+    
+    // Generate image endpoint
+    const imageGenerateResource = imageResource.addResource('generate');
+    imageGenerateResource.addMethod('POST', imageGenerationIntegration);
+    
+    // Image status endpoint
+    const imageStatusResource = imageResource.addResource('status');
+    const imageStatusIdResource = imageStatusResource.addResource('{id}');
+    imageStatusIdResource.addMethod('GET', apiIntegration);
+    
+    // Revise image endpoint
+    const imageReviseResource = imageResource.addResource('revise');
+    imageReviseResource.addMethod('POST', imageGenerationIntegration);
+    
+    // Analyze content for image endpoint
+    const imageAnalyzeResource = imageResource.addResource('analyze');
+    imageAnalyzeResource.addMethod('POST', apiIntegration);
     
     // Input processing endpoints
     const inputResource = apiResource.addResource('input');
