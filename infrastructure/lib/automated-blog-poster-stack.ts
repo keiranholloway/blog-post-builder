@@ -339,11 +339,12 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       handler: 'image-generation-agent.handler',
       code: lambda.Code.fromAsset('lambda'),
       timeout: cdk.Duration.minutes(10), // Longer timeout for image generation
-      memorySize: 512, // More memory for image processing
+      memorySize: 1024, // More memory for image processing with Sharp
       environment: {
-        CONTENT_TABLE: contentTable.tableName,
-        IMAGE_BUCKET: imageBucket.bucketName,
-        ORCHESTRATOR_QUEUE: agentQueue.queueUrl,
+        CONTENT_TABLE_NAME: contentTable.tableName,
+        IMAGE_BUCKET_NAME: imageBucket.bucketName,
+        ORCHESTRATOR_QUEUE_URL: agentQueue.queueUrl,
+        EVENT_BUS_NAME: eventBus.eventBusName,
         OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
         NODE_ENV: 'production',
       },
@@ -356,6 +357,7 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
     contentTable.grantReadWriteData(imageGenerationAgent);
     imageBucket.grantReadWrite(imageGenerationAgent);
     agentQueue.grantSendMessages(imageGenerationAgent);
+    eventBus.grantPutEventsTo(imageGenerationAgent);
 
     // SQS event source mappings for image generation agent
     imageGenerationAgent.addEventSource(new eventsources.SqsEventSource(imageGenerationQueue, {

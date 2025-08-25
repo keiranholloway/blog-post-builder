@@ -218,5 +218,27 @@ describe('ImageGenerationService', () => {
       
       expect(prompt).toContain('clean, modern, professional illustration');
     });
+
+    it('should handle technical content appropriately', () => {
+      const title = 'AWS Lambda Architecture';
+      const content = 'This guide covers serverless functions, API Gateway integration, and DynamoDB connections for scalable applications.';
+      
+      const prompt = imageGenerationService.generateImagePrompt(title, content, 'technical');
+      
+      expect(prompt).toContain('technical diagram');
+      expect(prompt).toContain('AWS Lambda Architecture');
+      expect(prompt).toContain('serverless');
+    });
+
+    it('should extract key concepts correctly', () => {
+      const title = 'Cloud Cost Optimization';
+      const content = 'Learn about FinOps practices, AWS cost management, resource optimization, and budget monitoring for enterprise workloads.';
+      
+      const prompt = imageGenerationService.generateImagePrompt(title, content, 'professional');
+      
+      expect(prompt.toLowerCase()).toContain('finops');
+      expect(prompt.toLowerCase()).toContain('cost');
+      expect(prompt.toLowerCase()).toContain('optimization');
+    });
   });
 });

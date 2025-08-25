@@ -39,6 +39,7 @@
     "aws-cdk-lib": "^2.211.0",
     "constructs": "^10.0.0",
     "node-fetch": "^3.3.2",
+    "sharp": "^0.33.5",
     "uuid": "^9.0.1"
   }
 }

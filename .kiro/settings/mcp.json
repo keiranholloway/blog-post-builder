@@ -1,3 +1,14 @@
 {
-    "mcpServers": {}
+    "mcpServers": {
+        "image-generation": {
+            "command": "uvx",
+            "args": ["mcp-image-generator@latest"],
+            "env": {
+                "FASTMCP_LOG_LEVEL": "ERROR",
+                "IMAGE_PROVIDER": "openai"
+            },
+            "disabled": false,
+            "autoApprove": ["generate_image", "analyze_content", "optimize_image"]
+        }
+    }
 }
