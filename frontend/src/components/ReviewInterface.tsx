@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { BlogContent } from '../types/BlogContent';
 import { contentGenerationService } from '../services/contentGenerationService';
 import { imageGenerationService } from '../services/imageGenerationService';
+import { InlineEditor } from './InlineEditor';
+import { StatusIndicator } from './StatusIndicator';
 import './ReviewInterface.css';
 
 interface ReviewInterfaceProps {
@@ -9,6 +11,7 @@ interface ReviewInterfaceProps {
   onContentRevision: (contentId: string, feedback: string) => void;
   onImageRevision: (contentId: string, feedback: string) => void;
   onApprove: (contentId: string) => void;
+  onInlineEdit?: (contentId: string, field: string, newValue: string) => void;
   className?: string;
 }
 
@@ -22,6 +25,7 @@ export const ReviewInterface: React.FC<ReviewInterfaceProps> = ({
   onContentRevision,
   onImageRevision,
   onApprove,
+  onInlineEdit,
   className = ''
 }) => {
   const [content, setContent] = useState<BlogContent | null>(null);
@@ -117,6 +121,18 @@ export const ReviewInterface: React.FC<ReviewInterfaceProps> = ({
     }
   };
 
+  const handleInlineEdit = async (field: string, newValue: string) => {
+    if (!onInlineEdit) return;
+    
+    try {
+      await onInlineEdit(contentId, field, newValue);
+      await loadContent();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `Failed to update ${field}`);
+      throw err; // Re-throw to keep inline editor in edit mode
+    }
+  };
+
   if (loading) {
     return (
       <div className={`review-interface loading ${className}`}>
@@ -159,16 +175,11 @@ export const ReviewInterface: React.FC<ReviewInterfaceProps> = ({
       <div className="review-header">
         <div className="content-info">
           <h2>Review Blog Post</h2>
-          <div className="status-indicators">
-            <span className={`status-indicator content ${processingStatus.content}`}>
-              Content: {processingStatus.content}
-            </span>
-            {content.imageUrl && (
-              <span className={`status-indicator image ${processingStatus.image}`}>
-                Image: {processingStatus.image}
-              </span>
-            )}
-          </div>
+          <StatusIndicator 
+            contentId={contentId}
+            showDetails={true}
+            className="header-status"
+          />
         </div>
         
         <div className="header-actions">
@@ -200,18 +211,27 @@ export const ReviewInterface: React.FC<ReviewInterfaceProps> = ({
           </div>
 
           <div className="content-display">
-            {content.title && (
-              <h1 className="content-title">{content.title}</h1>
-            )}
+            {/* Inline editable title */}
+            <div className="title-section">
+              <InlineEditor
+                value={content.title || ''}
+                onSave={(newTitle) => handleInlineEdit('title', newTitle)}
+                placeholder="Add a title..."
+                className="title"
+                disabled={processingStatus.content === 'processing' || !onInlineEdit}
+              />
+            </div>
             
+            {/* Inline editable content */}
             <div className="content-body">
-              {content.currentDraft.split('\n').map((paragraph, index) => (
-                paragraph.trim() && (
-                  <p key={index} className="content-paragraph">
-                    {paragraph}
-                  </p>
-                )
-              ))}
+              <InlineEditor
+                value={content.currentDraft}
+                onSave={(newContent) => handleInlineEdit('content', newContent)}
+                placeholder="Add content..."
+                multiline={true}
+                className="body"
+                disabled={processingStatus.content === 'processing' || !onInlineEdit}
+              />
             </div>
 
             {processingStatus.content === 'processing' && (

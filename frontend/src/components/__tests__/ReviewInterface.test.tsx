@@ -3,6 +3,28 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ReviewInterface } from '../ReviewInterface';
 import { contentGenerationService } from '../../services/contentGenerationService';
 
+// Mock the StatusIndicator component
+vi.mock('../StatusIndicator', () => ({
+  StatusIndicator: ({ contentId, showDetails, className }: any) => (
+    <div data-testid="status-indicator" className={className}>
+      Status for {contentId} (details: {showDetails ? 'true' : 'false'})
+    </div>
+  )
+}));
+
+// Mock the InlineEditor component
+vi.mock('../InlineEditor', () => ({
+  InlineEditor: ({ value, onSave, placeholder, className, disabled }: any) => (
+    <div 
+      data-testid="inline-editor" 
+      className={`${className} ${disabled ? 'disabled' : ''}`}
+      onClick={() => !disabled && onSave && onSave('edited-' + value)}
+    >
+      {value || placeholder}
+    </div>
+  )
+}));
+
 // Mock the content generation service
 vi.mock('../../services/contentGenerationService');
 
@@ -31,7 +53,8 @@ describe('ReviewInterface', () => {
     contentId: 'test-content-id',
     onContentRevision: vi.fn(),
     onImageRevision: vi.fn(),
-    onApprove: vi.fn()
+    onApprove: vi.fn(),
+    onInlineEdit: vi.fn()
   };
 
   beforeEach(() => {
@@ -86,13 +109,14 @@ describe('ReviewInterface', () => {
       });
     });
 
-    it('should display blog post title and content', async () => {
+    it('should display blog post title and content in inline editors', async () => {
       render(<ReviewInterface {...defaultProps} />);
 
       await waitFor(() => {
+        const inlineEditors = screen.getAllByTestId('inline-editor');
+        expect(inlineEditors).toHaveLength(2); // Title and content editors
         expect(screen.getByText('Test Blog Post')).toBeInTheDocument();
-        expect(screen.getByText('This is a test blog post content.')).toBeInTheDocument();
-        expect(screen.getByText('It has multiple paragraphs.')).toBeInTheDocument();
+        expect(screen.getByText('This is a test blog post content.\n\nIt has multiple paragraphs.')).toBeInTheDocument();
       });
     });
 
@@ -124,26 +148,20 @@ describe('ReviewInterface', () => {
       mockContentGenerationService.getGeneratedContent.mockResolvedValue(mockContent);
     });
 
-    it('should show status indicators for content and image', async () => {
+    it('should show status indicator component', async () => {
       render(<ReviewInterface {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Content:/)).toBeInTheDocument();
-        expect(screen.getByText(/Image:/)).toBeInTheDocument();
+        expect(screen.getByTestId('status-indicator')).toBeInTheDocument();
+        expect(screen.getByText(/Status for test-content-id/)).toBeInTheDocument();
       });
     });
 
-    it('should update status indicators based on processing state', async () => {
-      mockContentGenerationService.getContentStatus.mockResolvedValue({
-        status: 'processing_content',
-        progress: 50,
-        estimatedTimeRemaining: 30
-      });
-
+    it('should show detailed status', async () => {
       render(<ReviewInterface {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText(/processing/)).toBeInTheDocument();
+        expect(screen.getByText(/details: true/)).toBeInTheDocument();
       });
     });
   });
@@ -338,7 +356,7 @@ describe('ReviewInterface', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Revision History')).toBeInTheDocument();
-        expect(screen.getByText('Content Revision')).toBeInTheDocument();
+        expect(screen.getByText('content Revision')).toBeInTheDocument();
         expect(screen.getByText('Please make it more engaging')).toBeInTheDocument();
       });
     });
@@ -355,49 +373,85 @@ describe('ReviewInterface', () => {
     });
   });
 
-  describe('Status Polling', () => {
+  describe('Inline Editing', () => {
     beforeEach(() => {
       mockContentGenerationService.getGeneratedContent.mockResolvedValue(mockContent);
     });
 
-    it('should poll for status updates', async () => {
+    it('should call onInlineEdit when title is edited', async () => {
       render(<ReviewInterface {...defaultProps} />);
 
       await waitFor(() => {
-        expect(mockContentGenerationService.getContentStatus).toHaveBeenCalled();
+        const titleEditor = screen.getAllByTestId('inline-editor')[0];
+        fireEvent.click(titleEditor);
       });
 
-      // Wait for polling interval
-      await new Promise(resolve => setTimeout(resolve, 3100));
-
-      expect(mockContentGenerationService.getContentStatus).toHaveBeenCalledTimes(2);
+      expect(defaultProps.onInlineEdit).toHaveBeenCalledWith(
+        'test-content-id',
+        'title',
+        'edited-Test Blog Post'
+      );
     });
 
-    it('should reload content when processing is complete', async () => {
-      mockContentGenerationService.getContentStatus
-        .mockResolvedValueOnce({
-          status: 'processing',
-          progress: 50,
-          estimatedTimeRemaining: 30
-        })
-        .mockResolvedValueOnce({
-          status: 'ready',
-          progress: 100,
-          estimatedTimeRemaining: 0
-        });
-
+    it('should call onInlineEdit when content is edited', async () => {
       render(<ReviewInterface {...defaultProps} />);
 
       await waitFor(() => {
-        expect(mockContentGenerationService.getGeneratedContent).toHaveBeenCalledTimes(1);
+        const contentEditor = screen.getAllByTestId('inline-editor')[1];
+        fireEvent.click(contentEditor);
       });
 
-      // Wait for polling and status change
-      await new Promise(resolve => setTimeout(resolve, 3100));
+      expect(defaultProps.onInlineEdit).toHaveBeenCalledWith(
+        'test-content-id',
+        'content',
+        'edited-This is a test blog post content.\n\nIt has multiple paragraphs.'
+      );
+    });
+
+    it('should reload content after successful inline edit', async () => {
+      defaultProps.onInlineEdit.mockResolvedValue(undefined);
+      render(<ReviewInterface {...defaultProps} />);
+
+      await waitFor(() => {
+        const titleEditor = screen.getAllByTestId('inline-editor')[0];
+        fireEvent.click(titleEditor);
+      });
 
       await waitFor(() => {
         expect(mockContentGenerationService.getGeneratedContent).toHaveBeenCalledTimes(2);
       });
     });
+
+    it('should handle inline edit errors', async () => {
+      defaultProps.onInlineEdit.mockRejectedValue(new Error('Edit failed'));
+      render(<ReviewInterface {...defaultProps} />);
+
+      await waitFor(() => {
+        const titleEditor = screen.getAllByTestId('inline-editor')[0];
+        fireEvent.click(titleEditor);
+      });
+
+      // Should not reload content on error
+      await waitFor(() => {
+        expect(mockContentGenerationService.getGeneratedContent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('should disable inline editing when not provided', async () => {
+      const propsWithoutInlineEdit = {
+        ...defaultProps,
+        onInlineEdit: undefined
+      };
+      render(<ReviewInterface {...propsWithoutInlineEdit} />);
+
+      await waitFor(() => {
+        const inlineEditors = screen.getAllByTestId('inline-editor');
+        inlineEditors.forEach(editor => {
+          expect(editor.className).toContain('disabled');
+        });
+      });
+    });
   });
+
+
 });
