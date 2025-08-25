@@ -57,6 +57,7 @@ jest.mock('uuid', () => ({
 }));
 
 // NOW import the handler after mocks are set up
+import { handler } from '../lambda/input-processor';
 import { S3Client } from '@aws-sdk/client-s3';
 import { TranscribeClient } from '@aws-sdk/client-transcribe';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';

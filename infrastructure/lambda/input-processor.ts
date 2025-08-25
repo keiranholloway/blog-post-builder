@@ -49,17 +49,6 @@ const AUDIO_BUCKET = process.env.AUDIO_BUCKET_NAME!;
 const CONTENT_TABLE = process.env.CONTENT_TABLE_NAME!;
 const EVENT_BUS = process.env.EVENT_BUS_NAME!;
 
-// Validate required environment variables
-if (!CONTENT_TABLE) {
-  throw new Error('CONTENT_TABLE_NAME environment variable is required');
-}
-if (!EVENT_BUS) {
-  throw new Error('EVENT_BUS_NAME environment variable is required');
-}
-if (!AUDIO_BUCKET) {
-  throw new Error('AUDIO_BUCKET_NAME environment variable is required');
-}
-
 export const handler = async (
   event: APIGatewayProxyEvent,
   context: Context
@@ -89,6 +78,41 @@ export const handler = async (
     'Access-Control-Allow-Credentials': 'true',
     'Content-Type': 'application/json',
   };
+
+  // Validate required environment variables
+  if (!CONTENT_TABLE) {
+    console.error('CONTENT_TABLE_NAME environment variable is missing');
+    return {
+      statusCode: 500,
+      headers: corsHeaders,
+      body: JSON.stringify({
+        error: 'Configuration Error',
+        message: 'CONTENT_TABLE_NAME environment variable is required'
+      })
+    };
+  }
+  if (!EVENT_BUS) {
+    console.error('EVENT_BUS_NAME environment variable is missing');
+    return {
+      statusCode: 500,
+      headers: corsHeaders,
+      body: JSON.stringify({
+        error: 'Configuration Error',
+        message: 'EVENT_BUS_NAME environment variable is required'
+      })
+    };
+  }
+  if (!AUDIO_BUCKET) {
+    console.error('AUDIO_BUCKET_NAME environment variable is missing');
+    return {
+      statusCode: 500,
+      headers: corsHeaders,
+      body: JSON.stringify({
+        error: 'Configuration Error',
+        message: 'AUDIO_BUCKET_NAME environment variable is required'
+      })
+    };
+  }
 
   try {
     // Handle preflight OPTIONS requests
