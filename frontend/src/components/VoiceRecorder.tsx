@@ -16,6 +16,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const [isSupported, setIsSupported] = useState(true);
   
   const MIN_RECORDING_DURATION = 2; // Minimum 2 seconds
+  const MAX_RECORDING_DURATION = 180; // Maximum 3 minutes
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -24,6 +25,8 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const chunksRef = useRef<Blob[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const animationRef = useRef<number | null>(null);
+  const startTimeRef = useRef<number | null>(null);
+  const actualDurationRef = useRef<number>(0);
 
   useEffect(() => {
     // Check if MediaRecorder is supported
@@ -38,6 +41,8 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   }, [onError]);
 
   const cleanup = () => {
+    console.log('Cleaning up recording resources...');
+    
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -54,6 +59,15 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
+    
+    mediaRecorderRef.current = null;
+    analyserRef.current = null;
+    chunksRef.current = [];
+    startTimeRef.current = null;
+    actualDurationRef.current = 0;
+    setIsRecording(false);
+    setAudioLevel(0);
+    setDuration(0);
   };
 
   const startRecording = async () => {
@@ -80,13 +94,14 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       analyserRef.current.fftSize = 256;
 
       // Determine the best MIME type for MediaRecorder
-      let mimeType = 'audio/webm;codecs=opus';
+      // Start with formats supported by the backend
+      let mimeType = 'audio/webm';
       if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = 'audio/webm';
+        mimeType = 'audio/wav';
         if (!MediaRecorder.isTypeSupported(mimeType)) {
           mimeType = 'audio/mp4';
           if (!MediaRecorder.isTypeSupported(mimeType)) {
-            mimeType = 'audio/wav';
+            mimeType = 'audio/mpeg';
           }
         }
       }
@@ -110,8 +125,15 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         const totalSize = chunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0);
         console.log('Total audio size:', totalSize, 'bytes');
         
-        // Check minimum duration
-        if (duration < MIN_RECORDING_DURATION) {
+        // Calculate actual duration from start time
+        const actualDuration = startTimeRef.current 
+          ? Math.floor((Date.now() - startTimeRef.current) / 1000)
+          : actualDurationRef.current;
+        
+        console.log('Actual recording duration:', actualDuration, 'seconds');
+        
+        // Check minimum duration using actual duration
+        if (actualDuration < MIN_RECORDING_DURATION) {
           onError(`Recording too short. Please record for at least ${MIN_RECORDING_DURATION} seconds.`);
           cleanup();
           return;
@@ -127,7 +149,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           return;
         }
         
-        onRecordingComplete(audioBlob, duration);
+        onRecordingComplete(audioBlob, actualDuration);
         cleanup();
       };
 
@@ -141,12 +163,25 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       mediaRecorderRef.current.start(1000); // Request data every 1 second
       setIsRecording(true);
       setDuration(0);
+      
+      // Record start time for accurate duration calculation
+      startTimeRef.current = Date.now();
+      actualDurationRef.current = 0;
 
-      console.log('Recording started');
+      console.log('Recording started at:', new Date(startTimeRef.current).toISOString());
 
-      // Start duration timer
+      // Start duration timer with auto-stop at max duration
       intervalRef.current = setInterval(() => {
-        setDuration(prev => prev + 1);
+        setDuration(prev => {
+          const newDuration = prev + 1;
+          actualDurationRef.current = newDuration;
+          
+          if (newDuration >= MAX_RECORDING_DURATION) {
+            console.log('Maximum recording duration reached, stopping...');
+            stopRecording();
+          }
+          return newDuration;
+        });
       }, 1000);
 
       // Start audio level monitoring
@@ -172,15 +207,22 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       console.log('Stopping recording...');
+      
+      // Calculate final duration before stopping
+      if (startTimeRef.current) {
+        actualDurationRef.current = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        console.log('Final duration calculated:', actualDurationRef.current, 'seconds');
+      }
+      
       setIsRecording(false);
       setAudioLevel(0);
       
-      // Stop the MediaRecorder
+      // Stop the MediaRecorder first - this will trigger onstop
       if (mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop();
       }
       
-      // Stop the timer
+      // Stop the timer - but don't clear refs yet, onstop needs them
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
