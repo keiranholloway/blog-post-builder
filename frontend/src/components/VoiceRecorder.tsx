@@ -175,6 +175,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         setDuration(prev => {
           const newDuration = prev + 1;
           actualDurationRef.current = newDuration;
+          console.log('Timer tick:', newDuration, 'seconds');
           
           if (newDuration >= MAX_RECORDING_DURATION) {
             console.log('Maximum recording duration reached, stopping...');
@@ -206,7 +207,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      console.log('Stopping recording...');
+      console.log('stopRecording called - Stack trace:', new Error().stack);
       
       // Calculate final duration before stopping
       if (startTimeRef.current) {
