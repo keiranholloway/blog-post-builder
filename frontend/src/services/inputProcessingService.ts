@@ -1,6 +1,9 @@
 // Input Processing Service
 // Handles communication with the input processing Lambda function
 
+import pwaService from './pwaService';
+import backgroundSyncService from './backgroundSyncService';
+
 export interface AudioUploadRequest {
   audioData: string; // Base64 encoded audio
   contentType: string;
@@ -82,6 +85,19 @@ class InputProcessingService {
    * Upload and process audio file
    */
   async processAudio(audioBlob: Blob, userId: string): Promise<ApiResponse<{ inputId: string; status: string }>> {
+    // If offline, queue the action for background sync
+    if (!pwaService.isOnline()) {
+      const actionId = await backgroundSyncService.queueAction('voice_upload', {
+        audioBlob,
+        userId
+      });
+      
+      return {
+        message: 'Audio queued for processing when online',
+        data: { inputId: actionId, status: 'queued' }
+      };
+    }
+
     // Convert blob to base64
     const audioData = await this.blobToBase64(audioBlob);
     
@@ -104,6 +120,19 @@ class InputProcessingService {
    * Process text input
    */
   async processText(text: string, userId: string): Promise<ApiResponse<{ inputId: string; status: string; transcription: string }>> {
+    // If offline, queue the action for background sync
+    if (!pwaService.isOnline()) {
+      const actionId = await backgroundSyncService.queueAction('text_submit', {
+        text,
+        userId
+      });
+      
+      return {
+        message: 'Text queued for processing when online',
+        data: { inputId: actionId, status: 'queued', transcription: text }
+      };
+    }
+
     const request: TextInputRequest = {
       text,
       userId,

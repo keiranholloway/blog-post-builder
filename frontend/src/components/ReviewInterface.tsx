@@ -3,7 +3,7 @@ import { BlogContent } from '../types/BlogContent';
 import { contentGenerationService } from '../services/contentGenerationService';
 import { imageGenerationService } from '../services/imageGenerationService';
 import { InlineEditor } from './InlineEditor';
-import { StatusIndicator } from './StatusIndicator';
+import StatusIndicator from './StatusIndicator';
 import './ReviewInterface.css';
 
 interface ReviewInterfaceProps {
@@ -176,9 +176,8 @@ export const ReviewInterface: React.FC<ReviewInterfaceProps> = ({
         <div className="content-info">
           <h2>Review Blog Post</h2>
           <StatusIndicator 
-            contentId={contentId}
-            showDetails={true}
-            className="header-status"
+            status="In Review"
+            variant="info"
           />
         </div>
         

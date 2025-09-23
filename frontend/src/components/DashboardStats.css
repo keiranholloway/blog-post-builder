@@ -1,0 +1,141 @@
+.dashboard-stats {
+  margin-bottom: 2rem;
+}
+
+.dashboard-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.dashboard-stats__card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.dashboard-stats__card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-stats__card--success {
+  border-left: 4px solid #28a745;
+}
+
+.dashboard-stats__card--warning {
+  border-left: 4px solid #ffc107;
+}
+
+.dashboard-stats__card--error {
+  border-left: 4px solid #dc3545;
+}
+
+.dashboard-stats__card--info {
+  border-left: 4px solid #17a2b8;
+}
+
+.dashboard-stats__value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+  line-height: 1;
+}
+
+.dashboard-stats__card--success .dashboard-stats__value {
+  color: #28a745;
+}
+
+.dashboard-stats__card--warning .dashboard-stats__value {
+  color: #ffc107;
+}
+
+.dashboard-stats__card--error .dashboard-stats__value {
+  color: #dc3545;
+}
+
+.dashboard-stats__card--info .dashboard-stats__value {
+  color: #17a2b8;
+}
+
+.dashboard-stats__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-stats__sublabel {
+  font-size: 0.75rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .dashboard-stats__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .dashboard-stats__card {
+    padding: 1rem;
+  }
+
+  .dashboard-stats__value {
+    font-size: 1.5rem;
+  }
+
+  .dashboard-stats__label {
+    font-size: 0.8rem;
+  }
+
+  .dashboard-stats__sublabel {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-stats__grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .dashboard-stats__card {
+    padding: 0.75rem;
+  }
+
+  .dashboard-stats__value {
+    font-size: 1.25rem;
+  }
+
+  .dashboard-stats__label {
+    font-size: 0.75rem;
+  }
+
+  .dashboard-stats__sublabel {
+    font-size: 0.65rem;
+  }
+}
+
+/* Animation for value changes */
+@keyframes valueChange {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.dashboard-stats__value {
+  animation: valueChange 0.3s ease-in-out;
+}

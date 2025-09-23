@@ -1,0 +1,147 @@
+.error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 1rem;
+}
+
+.error-boundary__container {
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.error-boundary__icon {
+  color: #dc3545;
+  margin-bottom: 1.5rem;
+}
+
+.error-boundary__icon svg {
+  width: 64px;
+  height: 64px;
+}
+
+.error-boundary__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 1rem;
+}
+
+.error-boundary__message {
+  font-size: 1rem;
+  color: #6c757d;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+}
+
+.error-boundary__details {
+  text-align: left;
+  margin-bottom: 2rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 1rem;
+  background-color: #f8f9fa;
+}
+
+.error-boundary__details summary {
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+.error-boundary__stack {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.875rem;
+  color: #dc3545;
+  background-color: #fff;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.error-boundary__actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.error-boundary__button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.error-boundary__button--primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.error-boundary__button--primary:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+.error-boundary__button--secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.error-boundary__button--secondary:hover {
+  background-color: #545b62;
+  transform: translateY(-1px);
+}
+
+.error-boundary__button:active {
+  transform: translateY(0);
+}
+
+.error-boundary__error-id {
+  font-size: 0.875rem;
+  color: #6c757d;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .error-boundary {
+    padding: 1rem;
+    min-height: 300px;
+  }
+
+  .error-boundary__container {
+    max-width: 100%;
+  }
+
+  .error-boundary__title {
+    font-size: 1.25rem;
+  }
+
+  .error-boundary__actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .error-boundary__button {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .error-boundary__stack {
+    font-size: 0.75rem;
+  }
+}

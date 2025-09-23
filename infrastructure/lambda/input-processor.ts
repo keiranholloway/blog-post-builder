@@ -4,11 +4,14 @@ import { TranscribeClient, StartTranscriptionJobCommand, GetTranscriptionJobComm
 import { DynamoDBClient, PutItemCommand, UpdateItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
 import { v4 as uuidv4 } from 'uuid';
+import { ErrorHandler, DEFAULT_RETRY_CONFIG, ValidationError, ValidationSchema } from './utils/error-handler';
 
 interface ErrorResponse {
   error: string;
   message: string;
   requestId?: string;
+  retryable?: boolean;
+  suggestedAction?: string;
 }
 
 interface SuccessResponse {
@@ -39,20 +42,64 @@ interface InputProcessingResult {
   updatedAt: string;
 }
 
-// Initialize AWS clients
-const s3Client = new S3Client({ region: process.env.AWS_REGION });
-const transcribeClient = new TranscribeClient({ region: process.env.AWS_REGION });
-const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION });
-const eventBridgeClient = new EventBridgeClient({ region: process.env.AWS_REGION });
+// Initialize AWS clients with retry configuration
+const s3Client = new S3Client({ 
+  region: process.env.AWS_REGION,
+  maxAttempts: 3,
+});
+const transcribeClient = new TranscribeClient({ 
+  region: process.env.AWS_REGION,
+  maxAttempts: 3,
+});
+const dynamoClient = new DynamoDBClient({ 
+  region: process.env.AWS_REGION,
+  maxAttempts: 3,
+});
+const eventBridgeClient = new EventBridgeClient({ 
+  region: process.env.AWS_REGION,
+  maxAttempts: 3,
+});
+
+// Initialize error handler
+const errorHandler = new ErrorHandler();
 
 const AUDIO_BUCKET = process.env.AUDIO_BUCKET_NAME!;
 const CONTENT_TABLE = process.env.CONTENT_TABLE_NAME!;
 const EVENT_BUS = process.env.EVENT_BUS_NAME!;
 
+// Validation schemas
+const audioUploadSchema: ValidationSchema = {
+  audioData: { required: true, type: 'string', minLength: 100 },
+  contentType: { required: true, type: 'string', pattern: /^audio\// },
+  userId: { required: true, type: 'string', minLength: 1 },
+};
+
+const textInputSchema: ValidationSchema = {
+  text: { required: true, type: 'string', minLength: 10, maxLength: 10000 },
+  userId: { required: true, type: 'string', minLength: 1 },
+};
+
+// Helper function to determine HTTP status code from error
+function getStatusCodeForError(error: Error): number {
+  if (error instanceof ValidationError) return 400;
+  if (error.name.includes('NotFound')) return 404;
+  if (error.name.includes('Unauthorized')) return 401;
+  if (error.name.includes('Forbidden')) return 403;
+  if (error.name.includes('Throttling')) return 429;
+  if (error.name.includes('Timeout')) return 408;
+  return 500;
+}
+
 export const handler = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
+  const errorContext = {
+    functionName: context.functionName,
+    requestId: context.awsRequestId,
+    operation: `${event.httpMethod} ${event.path}`,
+  };
+
   console.log('Input Processor Event:', JSON.stringify(event, null, 2));
   console.log('Environment variables:', {
     CONTENT_TABLE_NAME: process.env.CONTENT_TABLE_NAME,
@@ -170,17 +217,13 @@ export const handler = async (
     };
 
   } catch (error) {
-    console.error('Unhandled error in input processor:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    const err = error as Error;
+    await errorHandler.handleError(err, errorContext);
 
-    const errorResponse: ErrorResponse = {
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'An unexpected error occurred',
-      requestId: context.awsRequestId,
-    };
+    const errorResponse = errorHandler.createUserFriendlyResponse(err, errorContext);
 
     return {
-      statusCode: 500,
+      statusCode: getStatusCodeForError(err),
       headers: corsHeaders,
       body: JSON.stringify(errorResponse),
     };
@@ -206,18 +249,13 @@ async function handleAudioUpload(
 
     const request: AudioUploadRequest = JSON.parse(event.body);
     
-    // Validate request
+    // Validate request using error handler
+    errorHandler.validateInput(request, audioUploadSchema);
+    
+    // Additional audio-specific validation
     const validation = validateAudioUploadRequest(request);
     if (!validation.isValid) {
-      return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({
-          error: 'Validation Error',
-          message: validation.error,
-          requestId: context.awsRequestId,
-        }),
-      };
+      throw new ValidationError(validation.error || 'Audio validation failed');
     }
 
     // Generate unique ID for this input
@@ -364,18 +402,13 @@ async function handleTextInput(
       throw new Error('Invalid JSON in request body');
     }
     
-    // Validate request
+    // Validate request using error handler
+    errorHandler.validateInput(request, textInputSchema);
+    
+    // Additional text-specific validation
     const validation = validateTextInputRequest(request);
     if (!validation.isValid) {
-      return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({
-          error: 'Validation Error',
-          message: validation.error,
-          requestId: context.awsRequestId,
-        }),
-      };
+      throw new ValidationError(validation.error || 'Text validation failed');
     }
 
     // Generate unique ID for this input

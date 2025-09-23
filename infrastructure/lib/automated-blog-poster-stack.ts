@@ -13,10 +13,25 @@ import * as eventsources from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as bedrock from '@aws-cdk/aws-bedrock-alpha';
 import * as path from 'path';
 import * as fs from 'fs';
+import { MonitoringStack } from './monitoring-stack';
+import { SecurityConfig, ProductionSecurity } from './security-config';
+
+export interface AutomatedBlogPosterStackProps extends cdk.StackProps {
+  corsOrigin?: string;
+  domainName?: string;
+  environment?: string;
+}
 
 export class AutomatedBlogPosterStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  public readonly lambdaFunctions: lambda.Function[] = [];
+  public readonly api: apigateway.RestApi;
+  public readonly tables: dynamodb.Table[] = [];
+  public readonly queues: sqs.Queue[] = [];
+
+  constructor(scope: Construct, id: string, props?: AutomatedBlogPosterStackProps) {
     super(scope, id, props);
+
+    const environment = props?.environment || 'development';
 
     // DynamoDB Tables with proper indexes
     const contentTable = new dynamodb.Table(this, 'ContentTable', {
@@ -65,6 +80,75 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       encryption: dynamodb.TableEncryption.AWS_MANAGED,
       pointInTimeRecovery: true,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    // Platform Connections Table for OAuth authentication
+    const platformsTable = new dynamodb.Table(this, 'PlatformsTable', {
+      tableName: `automated-blog-poster-platforms-${Date.now()}`,
+      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'platform', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      pointInTimeRecovery: true,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    // OAuth States Table for temporary state storage
+    const oauthStatesTable = new dynamodb.Table(this, 'OAuthStatesTable', {
+      tableName: `automated-blog-poster-oauth-states-${Date.now()}`,
+      partitionKey: { name: 'state', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      timeToLiveAttribute: 'ttl', // Auto-expire OAuth states after 1 hour
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    // Publishing Jobs Table for tracking individual platform publishing jobs
+    const publishingJobsTable = new dynamodb.Table(this, 'PublishingJobsTable', {
+      tableName: `automated-blog-poster-publishing-jobs-${Date.now()}`,
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      pointInTimeRecovery: true,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    // GSI for querying jobs by content ID
+    publishingJobsTable.addGlobalSecondaryIndex({
+      indexName: 'ContentIdIndex',
+      partitionKey: { name: 'contentId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+    });
+
+    // GSI for querying jobs by status
+    publishingJobsTable.addGlobalSecondaryIndex({
+      indexName: 'StatusIndex',
+      partitionKey: { name: 'status', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'updatedAt', type: dynamodb.AttributeType.STRING },
+    });
+
+    // Publishing Orchestration Table for tracking multi-platform publishing workflows
+    const publishingOrchestrationTable = new dynamodb.Table(this, 'PublishingOrchestrationTable', {
+      tableName: `automated-blog-poster-publishing-orchestration-${Date.now()}`,
+      partitionKey: { name: 'jobId', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      pointInTimeRecovery: true,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    // GSI for querying orchestration by content ID
+    publishingOrchestrationTable.addGlobalSecondaryIndex({
+      indexName: 'ContentIdIndex',
+      partitionKey: { name: 'contentId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+    });
+
+    // GSI for querying orchestration by status
+    publishingOrchestrationTable.addGlobalSecondaryIndex({
+      indexName: 'StatusIndex',
+      partitionKey: { name: 'status', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'updatedAt', type: dynamodb.AttributeType.STRING },
     });
 
     // GSI for querying messages by content ID
@@ -140,6 +224,83 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       description: 'OAuth credentials for publishing platforms',
     });
 
+    // Secrets Manager for security configuration
+    const securityConfig = new secretsmanager.Secret(this, 'SecurityConfig', {
+      secretName: 'automated-blog-poster/security-config',
+      description: 'Security configuration including JWT secrets and policies',
+    });
+
+    // DynamoDB table for JWT tokens (for revocation)
+    const tokensTable = new dynamodb.Table(this, 'TokensTable', {
+      tableName: `automated-blog-poster-tokens-${Date.now()}`,
+      partitionKey: { name: 'tokenId', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      timeToLiveAttribute: 'expiresAt',
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    // GSI for querying tokens by user ID
+    tokensTable.addGlobalSecondaryIndex({
+      indexName: 'UserIdIndex',
+      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+    });
+
+    // DynamoDB table for audit logs
+    const auditTable = new dynamodb.Table(this, 'AuditTable', {
+      tableName: `automated-blog-poster-audit-${Date.now()}`,
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      timeToLiveAttribute: 'ttl', // Auto-expire audit logs after retention period
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    // GSI for querying audit logs by user ID
+    auditTable.addGlobalSecondaryIndex({
+      indexName: 'UserIdIndex',
+      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'timestamp', type: dynamodb.AttributeType.STRING },
+    });
+
+    // GSI for querying audit logs by event type
+    auditTable.addGlobalSecondaryIndex({
+      indexName: 'EventTypeIndex',
+      partitionKey: { name: 'eventType', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'timestamp', type: dynamodb.AttributeType.STRING },
+    });
+
+    // GSI for querying audit logs by severity
+    auditTable.addGlobalSecondaryIndex({
+      indexName: 'SeverityIndex',
+      partitionKey: { name: 'severity', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'timestamp', type: dynamodb.AttributeType.STRING },
+    });
+
+    // Lambda function for authentication handling
+    const authHandler = new lambda.Function(this, 'AuthHandler', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'auth-handler.handler',
+      code: lambda.Code.fromAsset('lambda'),
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
+      environment: {
+        PLATFORMS_TABLE: platformsTable.tableName,
+        OAUTH_STATES_TABLE: oauthStatesTable.tableName,
+        MEDIUM_CLIENT_ID: process.env.MEDIUM_CLIENT_ID || '',
+        MEDIUM_CLIENT_SECRET: process.env.MEDIUM_CLIENT_SECRET || '',
+        MEDIUM_REDIRECT_URI: process.env.MEDIUM_REDIRECT_URI || '',
+        LINKEDIN_CLIENT_ID: process.env.LINKEDIN_CLIENT_ID || '',
+        LINKEDIN_CLIENT_SECRET: process.env.LINKEDIN_CLIENT_SECRET || '',
+        LINKEDIN_REDIRECT_URI: process.env.LINKEDIN_REDIRECT_URI || '',
+        NODE_ENV: 'production',
+      },
+      deadLetterQueue: new sqs.Queue(this, 'AuthHandlerDLQ', {
+        queueName: 'automated-blog-poster-auth-dlq',
+      }),
+    });
+
     // Lambda function for API handling with proper error handling
     const apiHandler = new lambda.Function(this, 'ApiHandler', {
       runtime: lambda.Runtime.NODEJS_18_X,
@@ -151,6 +312,7 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
         CONTENT_TABLE_NAME: contentTable.tableName,
         USER_TABLE_NAME: userTable.tableName,
         AGENT_MESSAGES_TABLE_NAME: agentMessagesTable.tableName,
+        PLATFORMS_TABLE_NAME: platformsTable.tableName,
         AUDIO_BUCKET_NAME: audioBucket.bucketName,
         IMAGE_BUCKET_NAME: imageBucket.bucketName,
         AGENT_QUEUE_URL: agentQueue.queueUrl,
@@ -204,6 +366,17 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       },
     });
 
+    const publishingQueue = new sqs.Queue(this, 'PublishingQueue', {
+      queueName: 'automated-blog-poster-publishing',
+      visibilityTimeout: cdk.Duration.minutes(10),
+      deadLetterQueue: {
+        queue: new sqs.Queue(this, 'PublishingDLQ', {
+          queueName: 'automated-blog-poster-publishing-dlq',
+        }),
+        maxReceiveCount: 3,
+      },
+    });
+
     // Lambda function for content orchestration
     const contentOrchestrator = new lambda.Function(this, 'ContentOrchestrator', {
       runtime: lambda.Runtime.NODEJS_18_X,
@@ -224,10 +397,120 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       }),
     });
 
+    // Lambda function for data retention cleanup
+    const dataRetentionCleanup = new lambda.Function(this, 'DataRetentionCleanup', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'data-retention-cleanup.handler',
+      code: lambda.Code.fromAsset('lambda'),
+      timeout: cdk.Duration.minutes(15), // Longer timeout for cleanup operations
+      memorySize: 512,
+      environment: {
+        CONTENT_TABLE_NAME: contentTable.tableName,
+        AUDIT_TABLE_NAME: auditTable.tableName,
+        TOKENS_TABLE_NAME: tokensTable.tableName,
+        AUDIO_BUCKET_NAME: audioBucket.bucketName,
+        IMAGE_BUCKET_NAME: imageBucket.bucketName,
+        ALERT_TOPIC_ARN: '', // Will be set after monitoring stack creation
+        NODE_ENV: 'production',
+      },
+      deadLetterQueue: new sqs.Queue(this, 'DataRetentionCleanupDLQ', {
+        queueName: 'automated-blog-poster-data-retention-cleanup-dlq',
+      }),
+    });
+
+    // Schedule data retention cleanup to run daily
+    const cleanupRule = new events.Rule(this, 'DataRetentionCleanupRule', {
+      schedule: events.Schedule.cron({
+        minute: '0',
+        hour: '2', // Run at 2 AM UTC daily
+        day: '*',
+        month: '*',
+        year: '*',
+      }),
+      targets: [new targets.LambdaFunction(dataRetentionCleanup)],
+    });
+
+    // Grant permissions for Auth Handler
+    platformsTable.grantReadWriteData(authHandler);
+    oauthStatesTable.grantReadWriteData(authHandler);
+    tokensTable.grantReadWriteData(authHandler);
+    auditTable.grantWriteData(authHandler);
+    
+    // Grant Secrets Manager permissions to Auth Handler
+    authHandler.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'secretsmanager:CreateSecret',
+        'secretsmanager:UpdateSecret',
+        'secretsmanager:GetSecretValue',
+        'secretsmanager:DeleteSecret',
+        'secretsmanager:DescribeSecret',
+      ],
+      resources: [
+        'arn:aws:secretsmanager:*:*:secret:oauth-credentials/*',
+        'arn:aws:secretsmanager:*:*:secret:automated-blog-poster/security-config*',
+      ],
+    }));
+
+    // Grant permissions for Data Retention Cleanup
+    contentTable.grantReadWriteData(dataRetentionCleanup);
+    auditTable.grantReadWriteData(dataRetentionCleanup);
+    tokensTable.grantReadWriteData(dataRetentionCleanup);
+    audioBucket.grantReadWrite(dataRetentionCleanup);
+    imageBucket.grantReadWrite(dataRetentionCleanup);
+
+    // Add security-related environment variables to all Lambda functions
+    const securityEnvVars = {
+      TOKENS_TABLE_NAME: tokensTable.tableName,
+      AUDIT_TABLE_NAME: auditTable.tableName,
+      SECURITY_CONFIG_SECRET: securityConfig.secretName,
+      CORS_ORIGIN: 'https://keiranholloway.github.io',
+    };
+
+    // Update all Lambda functions with security environment variables
+    [
+      apiHandler,
+      inputProcessor,
+      contentOrchestrator,
+      contentGenerationAgent,
+      imageGenerationAgent,
+      revisionProcessor,
+      publishingOrchestrator,
+      authHandler,
+      dataRetentionCleanup,
+    ].forEach(func => {
+      Object.entries(securityEnvVars).forEach(([key, value]) => {
+        func.addEnvironment(key, value);
+      });
+    });
+
+    // Grant security-related permissions to all Lambda functions
+    [
+      apiHandler,
+      inputProcessor,
+      contentOrchestrator,
+      contentGenerationAgent,
+      imageGenerationAgent,
+      revisionProcessor,
+      publishingOrchestrator,
+      authHandler,
+      dataRetentionCleanup,
+    ].forEach(func => {
+      // Grant access to security config
+      securityConfig.grantRead(func);
+      
+      // Grant access to audit table for logging
+      auditTable.grantWriteData(func);
+      
+      // Grant access to tokens table for JWT operations
+      tokensTable.grantReadWriteData(func);
+    });
+
     // Grant permissions for API Handler
     contentTable.grantReadWriteData(apiHandler);
     userTable.grantReadWriteData(apiHandler);
     agentMessagesTable.grantReadWriteData(apiHandler);
+    platformsTable.grantReadData(apiHandler);
     audioBucket.grantReadWrite(apiHandler);
     imageBucket.grantReadWrite(apiHandler);
     agentQueue.grantSendMessages(apiHandler);
@@ -289,6 +572,22 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
 
     // Create Bedrock Agent with Keiran's personality and content
     const { agent: bedrockAgent, alias: bedrockAgentAlias } = this.createBedrockAgent();
+
+    // Collect all Lambda functions for monitoring
+    const allLambdaFunctions = [
+      authHandler,
+      apiHandler,
+      inputProcessor,
+      contentOrchestrator,
+      dataRetentionCleanup,
+      contentGenerationAgent,
+      imageGenerationAgent,
+      revisionProcessor,
+      publishingOrchestrator,
+    ];
+
+    // Set up production features and security
+    this.setupProductionFeatures(environment, props?.corsOrigin, allLambdaFunctions);
 
     // Lambda function for content generation agent
     const contentGenerationAgent = new lambda.Function(this, 'ContentGenerationAgent', {
@@ -394,8 +693,51 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
       batchSize: 1, // Process one message at a time for better error handling
     }));
 
+    // Lambda function for publishing orchestration
+    const publishingOrchestrator = new lambda.Function(this, 'PublishingOrchestrator', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'publishing-orchestrator.handler',
+      code: lambda.Code.fromAsset('lambda'),
+      timeout: cdk.Duration.minutes(5),
+      memorySize: 512,
+      environment: {
+        CONTENT_TABLE_NAME: contentTable.tableName,
+        PLATFORMS_TABLE_NAME: platformsTable.tableName,
+        PUBLISHING_JOBS_TABLE_NAME: publishingJobsTable.tableName,
+        PUBLISHING_ORCHESTRATION_TABLE_NAME: publishingOrchestrationTable.tableName,
+        PUBLISHING_QUEUE_URL: publishingQueue.queueUrl,
+        PLATFORM_CREDENTIALS_SECRET: platformCredentials.secretArn,
+        NODE_ENV: 'production',
+      },
+      deadLetterQueue: new sqs.Queue(this, 'PublishingOrchestratorDLQ', {
+        queueName: 'automated-blog-poster-publishing-orchestrator-dlq',
+      }),
+    });
+
+    // Grant permissions for Publishing Orchestrator
+    contentTable.grantReadWriteData(publishingOrchestrator);
+    platformsTable.grantReadData(publishingOrchestrator);
+    publishingJobsTable.grantReadWriteData(publishingOrchestrator);
+    publishingOrchestrationTable.grantReadWriteData(publishingOrchestrator);
+    publishingQueue.grantSendMessages(publishingOrchestrator);
+    platformCredentials.grantRead(publishingOrchestrator);
+    
+    // Grant external API permissions for publishing
+    publishingOrchestrator.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'secretsmanager:GetSecretValue',
+        'secretsmanager:DescribeSecret',
+      ],
+      resources: [platformCredentials.secretArn],
+    }));
+
+    // Store references for monitoring
+    this.tables = [contentTable, userTable, agentMessagesTable, platformsTable, oauthStatesTable, publishingJobsTable, publishingOrchestrationTable, tokensTable, auditTable];
+    this.queues = [agentQueue, contentGenerationQueue, imageGenerationQueue, publishingQueue];
+
     // API Gateway with GitHub Pages optimized CORS
-    const api = new apigateway.RestApi(this, 'Api', {
+    this.api = new apigateway.RestApi(this, 'Api', {
       restApiName: 'Automated Blog Poster API',
       description: 'API for the automated blog poster system',
       defaultCorsPreflightOptions: {
@@ -547,6 +889,72 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
     const transcriptionCallbackResource = inputResource.addResource('transcription-callback');
     transcriptionCallbackResource.addMethod('POST', inputProcessorIntegration);
 
+    // Authentication endpoints
+    const authResource = apiResource.addResource('auth');
+    const authIntegration = new apigateway.LambdaIntegration(authHandler);
+    
+    // OAuth token exchange endpoint
+    const authExchangeResource = authResource.addResource('exchange');
+    authExchangeResource.addMethod('POST', authIntegration);
+    
+    // Platform management endpoints
+    const authPlatformsResource = authResource.addResource('platforms');
+    const authPlatformsUserResource = authPlatformsResource.addResource('{userId}');
+    authPlatformsUserResource.addMethod('GET', authIntegration);
+    
+    const authPlatformResource = authPlatformsUserResource.addResource('{platform}');
+    authPlatformResource.addMethod('DELETE', authIntegration);
+    
+    // Token status endpoint
+    const authStatusResource = authResource.addResource('status');
+    const authStatusUserResource = authStatusResource.addResource('{userId}');
+    const authStatusPlatformResource = authStatusUserResource.addResource('{platform}');
+    authStatusPlatformResource.addMethod('GET', authIntegration);
+    
+    // Token refresh endpoint
+    const authRefreshResource = authResource.addResource('refresh');
+    authRefreshResource.addMethod('POST', authIntegration);
+
+    // Publishing endpoints
+    const publishingResource = apiResource.addResource('publishing');
+    const publishingIntegration = new apigateway.LambdaIntegration(publishingOrchestrator);
+    
+    // Get supported platforms endpoint
+    const publishingPlatformsResource = publishingResource.addResource('platforms');
+    publishingPlatformsResource.addMethod('GET', publishingIntegration);
+    
+    // Validate credentials endpoint
+    const publishingValidateResource = publishingResource.addResource('validate-credentials');
+    publishingValidateResource.addMethod('POST', publishingIntegration);
+    
+    // Publish content endpoint
+    const publishingPublishResource = publishingResource.addResource('publish');
+    publishingPublishResource.addMethod('POST', publishingIntegration);
+    
+    // Get publishing status endpoint
+    const publishingStatusResource = publishingResource.addResource('status');
+    publishingStatusResource.addMethod('POST', publishingIntegration);
+    
+    // Format preview endpoint
+    const publishingPreviewResource = publishingResource.addResource('format-preview');
+    publishingPreviewResource.addMethod('POST', publishingIntegration);
+    
+    // Orchestration endpoint
+    const publishingOrchestrateResource = publishingResource.addResource('orchestrate');
+    publishingOrchestrateResource.addMethod('POST', publishingIntegration);
+    
+    // Retry failed jobs endpoint
+    const publishingRetryResource = publishingResource.addResource('retry');
+    publishingRetryResource.addMethod('POST', publishingIntegration);
+    
+    // Job status endpoint
+    const publishingJobStatusResource = publishingResource.addResource('job-status');
+    publishingJobStatusResource.addMethod('GET', publishingIntegration);
+    
+    // Cancel job endpoint
+    const publishingCancelResource = publishingResource.addResource('cancel');
+    publishingCancelResource.addMethod('POST', publishingIntegration);
+
     // Catch-all proxy for any other routes (handled by apiHandler)
     api.root.addProxy({
       defaultIntegration: apiIntegration,
@@ -591,6 +999,112 @@ export class AutomatedBlogPosterStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'EventBusName', {
       value: eventBus.eventBusName,
       description: 'EventBridge Event Bus Name',
+    });
+
+    new cdk.CfnOutput(this, 'PlatformsTableName', {
+      value: platformsTable.tableName,
+      description: 'DynamoDB Platforms Table Name',
+    });
+
+    new cdk.CfnOutput(this, 'OAuthStatesTableName', {
+      value: oauthStatesTable.tableName,
+      description: 'DynamoDB OAuth States Table Name',
+    });
+
+    // Create monitoring stack
+    const monitoringStack = new MonitoringStack(this, 'Monitoring', {
+      lambdaFunctions: [
+        apiHandler,
+        inputProcessor,
+        contentOrchestrator,
+        contentGenerationAgent,
+        imageGenerationAgent,
+        revisionProcessor,
+        publishingOrchestrator,
+        authHandler,
+        dataRetentionCleanup,
+      ],
+      api: api,
+      tables: [
+        contentTable,
+        userTable,
+        agentMessagesTable,
+        platformsTable,
+        oauthStatesTable,
+        publishingJobsTable,
+        publishingOrchestrationTable,
+        tokensTable,
+        auditTable,
+      ],
+      queues: [
+        agentQueue,
+        contentGenerationQueue,
+        imageGenerationQueue,
+        publishingQueue,
+      ],
+      alertEmail: process.env.ALERT_EMAIL,
+    });
+
+    // Add environment variables for monitoring
+    const monitoringEnvVars = {
+      ALERT_TOPIC_ARN: monitoringStack.alertTopic.topicArn,
+    };
+
+    // Update Lambda functions with monitoring environment variables
+    [
+      apiHandler,
+      inputProcessor,
+      contentOrchestrator,
+      contentGenerationAgent,
+      imageGenerationAgent,
+      revisionProcessor,
+      publishingOrchestrator,
+      authHandler,
+      dataRetentionCleanup,
+    ].forEach(func => {
+      Object.entries(monitoringEnvVars).forEach(([key, value]) => {
+        func.addEnvironment(key, value);
+      });
+    });
+
+    // Grant SNS publish permissions to all Lambda functions
+    [
+      apiHandler,
+      inputProcessor,
+      contentOrchestrator,
+      contentGenerationAgent,
+      imageGenerationAgent,
+      revisionProcessor,
+      publishingOrchestrator,
+      authHandler,
+      dataRetentionCleanup,
+    ].forEach(func => {
+      monitoringStack.alertTopic.grantPublish(func);
+    });
+
+    new cdk.CfnOutput(this, 'DashboardUrl', {
+      value: `https://${this.region}.console.aws.amazon.com/cloudwatch/home?region=${this.region}#dashboards:name=${monitoringStack.dashboard.dashboardName}`,
+      description: 'CloudWatch Dashboard URL',
+    });
+
+    new cdk.CfnOutput(this, 'AlertTopicArn', {
+      value: monitoringStack.alertTopic.topicArn,
+      description: 'SNS Alert Topic ARN',
+    });
+
+    new cdk.CfnOutput(this, 'TokensTableName', {
+      value: tokensTable.tableName,
+      description: 'DynamoDB Tokens Table Name',
+    });
+
+    new cdk.CfnOutput(this, 'AuditTableName', {
+      value: auditTable.tableName,
+      description: 'DynamoDB Audit Table Name',
+    });
+
+    new cdk.CfnOutput(this, 'SecurityConfigSecret', {
+      value: securityConfig.secretName,
+      description: 'Security Configuration Secret Name',
     });
   }
 
@@ -667,5 +1181,48 @@ When generating blog content:
     });
 
     return { agent, alias: agentAlias };
+  }
+
+  private setupProductionFeatures(environment: string, corsOrigin?: string, lambdaFunctions: lambda.Function[]) {
+    // Store Lambda functions for monitoring
+    this.lambdaFunctions = lambdaFunctions;
+
+    // Apply production security if in production environment
+    if (environment === 'production') {
+      const securityConfig = new SecurityConfig(this, 'SecurityConfig', {
+        api: this.api,
+        lambdaFunctions: this.lambdaFunctions,
+        environment,
+      });
+
+      const productionSecurity = new ProductionSecurity(this, 'ProductionSecurity', {
+        environment,
+        alertEmail: process.env.ALERT_EMAIL || 'alerts@yourdomain.com',
+      });
+    }
+
+    // Update API Gateway CORS for production
+    if (corsOrigin) {
+      // CORS is already configured in the API Gateway setup
+      // This is a placeholder for any additional CORS configuration
+    }
+
+    // Output important URLs and information
+    new cdk.CfnOutput(this, 'ApiUrl', {
+      description: 'API Gateway URL',
+      value: this.api.url,
+    });
+
+    new cdk.CfnOutput(this, 'Environment', {
+      description: 'Deployment environment',
+      value: environment,
+    });
+
+    if (environment === 'production') {
+      new cdk.CfnOutput(this, 'FrontendUrl', {
+        description: 'Frontend URL',
+        value: corsOrigin || 'https://keiranholloway.github.io/automated-blog-poster',
+      });
+    }
   }
 }

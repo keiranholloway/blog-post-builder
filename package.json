@@ -1,28 +1,36 @@
 {
   "name": "automated-blog-poster",
   "version": "1.0.0",
-  "description": "A serverless system that transforms voice input into published blog posts",
-  "main": "index.js",
+  "description": "Serverless system that transforms voice input into published blog posts",
   "scripts": {
     "install:all": "npm install && cd frontend && npm install && cd ../infrastructure && npm install",
-    "dev:frontend": "cd frontend && npm start",
+    "dev:frontend": "cd frontend && npm run dev",
     "build:frontend": "cd frontend && npm run build",
-    "deploy:infrastructure": "cd infrastructure && npm run deploy",
-    "test": "npm run test:frontend && npm run test:infrastructure",
     "test:frontend": "cd frontend && npm test",
-    "test:infrastructure": "cd infrastructure && npm test"
+    "test:infrastructure": "cd infrastructure && npm test",
+    "test:e2e": "cd frontend && npm run test:e2e",
+    "test:smoke": "node scripts/smoke-tests.js",
+    "test:health": "node scripts/health-checks.js",
+    "test:performance-monitoring": "node scripts/performance-monitoring.js",
+    "check:cloudwatch-alarms": "node scripts/check-cloudwatch-alarms.js",
+    "validate:deployment-metrics": "node scripts/validate-deployment-metrics.js",
+    "deploy:infrastructure": "cd infrastructure && npm run deploy",
+    "deploy:production": "./scripts/deploy-production.sh",
+    "setup:monitoring": "./scripts/setup-production-monitoring.sh",
+    "validate:production": "./scripts/validate-production-deployment.sh",
+    "rollback:production": "./scripts/rollback-production.sh",
+    "verify:backups": "./scripts/verify-backups.sh",
+    "health:production": "./scripts/health-check-production.sh",
+    "lint": "npm run lint:frontend && npm run lint:infrastructure",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:infrastructure": "cd infrastructure && npm run lint"
   },
-  "keywords": [
-    "blog",
-    "voice-to-text",
-    "ai",
-    "serverless",
-    "aws",
-    "publishing"
-  ],
-  "author": "",
-  "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.0.0"
-  }
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "workspaces": [
+    "frontend",
+    "infrastructure"
+  ]
 }

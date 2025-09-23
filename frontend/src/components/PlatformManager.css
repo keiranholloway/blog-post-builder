@@ -1,0 +1,233 @@
+.platform-manager {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.platform-manager h2 {
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 1.5rem;
+}
+
+.platform-manager .description {
+  color: #666;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.error-message {
+  background-color: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.platforms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.platform-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.platform-info {
+  flex: 1;
+}
+
+.platform-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.platform-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-badge.connected {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-badge.disconnected {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.platform-description {
+  color: #666;
+  margin: 8px 0 16px 0;
+  line-height: 1.4;
+}
+
+.connection-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detail-item {
+  display: flex;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.detail-item .label {
+  color: #666;
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.detail-item .value {
+  color: #333;
+}
+
+.renewal-warning {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+.platform-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 120px;
+}
+
+.connected-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.connect-button,
+.disconnect-button,
+.renew-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.connect-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.connect-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.connect-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.renew-button {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.renew-button:hover {
+  background-color: #e0a800;
+}
+
+.disconnect-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.disconnect-button:hover {
+  background-color: #c82333;
+}
+
+.platform-help {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.platform-help h4 {
+  margin: 0 0 12px 0;
+  color: #333;
+}
+
+.platform-help ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #666;
+}
+
+.platform-help li {
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .platform-manager {
+    padding: 16px;
+  }
+
+  .platform-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .platform-actions {
+    min-width: auto;
+  }
+
+  .connected-actions {
+    flex-direction: row;
+  }
+
+  .platform-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .connection-details {
+    margin-top: 12px;
+  }
+}

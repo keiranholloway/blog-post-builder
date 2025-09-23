@@ -1,0 +1,47 @@
+{
+  "environment": "production",
+  "region": "us-east-1",
+  "stackName": "AutomatedBlogPoster-Prod",
+  "monitoringStackName": "AutomatedBlogPoster-Monitoring-Prod",
+  "corsOrigin": "https://keiranholloway.github.io",
+  "domainName": "blog-poster.yourdomain.com",
+  "alertEmail": "alerts@yourdomain.com",
+  "security": {
+    "enableWaf": true,
+    "enableGuardDuty": true,
+    "enableSecurityHub": true,
+    "enableCloudTrail": true,
+    "encryptionAtRest": true,
+    "encryptionInTransit": true
+  },
+  "monitoring": {
+    "enableXRay": true,
+    "enableDetailedMonitoring": true,
+    "logRetentionDays": 365,
+    "metricsRetentionDays": 90
+  },
+  "backup": {
+    "enablePointInTimeRecovery": true,
+    "backupRetentionDays": 35,
+    "crossRegionBackup": false
+  },
+  "scaling": {
+    "lambdaConcurrency": {
+      "reserved": 100,
+      "provisioned": 10
+    },
+    "apiGateway": {
+      "throttling": {
+        "rateLimit": 10000,
+        "burstLimit": 5000
+      }
+    }
+  },
+  "dataRetention": {
+    "audioFiles": 7,
+    "contentDrafts": 90,
+    "auditLogs": 2555,
+    "userSessions": 30,
+    "publishingHistory": 365
+  }
+}

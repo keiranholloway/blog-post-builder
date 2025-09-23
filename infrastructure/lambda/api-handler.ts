@@ -3,11 +3,16 @@ import { DynamoDBClient, PutItemCommand, GetItemCommand, QueryCommand } from '@a
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
 import { v4 as uuidv4 } from 'uuid';
+import { ErrorHandler, DEFAULT_RETRY_CONFIG, ValidationError } from './utils/error-handler';
+import { AuthMiddleware, AuthenticatedEvent } from './auth/auth-middleware';
+import { AuditLogger } from './utils/audit-logger';
 
 interface ErrorResponse {
   error: string;
   message: string;
   requestId?: string;
+  retryable?: boolean;
+  suggestedAction?: string;
 }
 
 interface SuccessResponse {
@@ -16,15 +21,51 @@ interface SuccessResponse {
   version: string;
 }
 
-// Initialize AWS clients
-const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION });
-const sqsClient = new SQSClient({ region: process.env.AWS_REGION });
-const eventBridgeClient = new EventBridgeClient({ region: process.env.AWS_REGION });
+// Initialize AWS clients with retry configuration
+const dynamoClient = new DynamoDBClient({ 
+  region: process.env.AWS_REGION,
+  maxAttempts: 3,
+});
+const sqsClient = new SQSClient({ 
+  region: process.env.AWS_REGION,
+  maxAttempts: 3,
+});
+const eventBridgeClient = new EventBridgeClient({ 
+  region: process.env.AWS_REGION,
+  maxAttempts: 3,
+});
+
+// Initialize error handler
+const errorHandler = new ErrorHandler();
+
+// Initialize authentication middleware
+const authMiddleware = new AuthMiddleware();
+
+// Initialize audit logger
+const auditLogger = new AuditLogger();
+
+// Helper function to determine HTTP status code from error
+function getStatusCodeForError(error: Error): number {
+  if (error instanceof ValidationError) return 400;
+  if (error.name.includes('NotFound')) return 404;
+  if (error.name.includes('Unauthorized')) return 401;
+  if (error.name.includes('Forbidden')) return 403;
+  if (error.name.includes('Throttling')) return 429;
+  if (error.name.includes('Timeout')) return 408;
+  return 500;
+}
 
 export const handler = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
+  const errorContext = {
+    functionName: context.functionName,
+    requestId: context.awsRequestId,
+    operation: `${event.httpMethod} ${event.path}`,
+    userId: event.requestContext?.authorizer?.userId,
+  };
+
   console.log('Event:', JSON.stringify(event, null, 2));
   console.log('Context:', JSON.stringify(context, null, 2));
 
@@ -162,16 +203,13 @@ export const handler = async (
     };
 
   } catch (error) {
-    console.error('Unhandled error:', error);
+    const err = error as Error;
+    await errorHandler.handleError(err, errorContext);
 
-    const errorResponse: ErrorResponse = {
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'An unexpected error occurred',
-      requestId: context.awsRequestId,
-    };
+    const errorResponse = errorHandler.createUserFriendlyResponse(err, errorContext);
 
     return {
-      statusCode: 500,
+      statusCode: getStatusCodeForError(err),
       headers: corsHeaders,
       body: JSON.stringify(errorResponse),
     };

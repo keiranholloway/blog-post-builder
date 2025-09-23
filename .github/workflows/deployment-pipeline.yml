@@ -1,0 +1,461 @@
+name: Deployment Pipeline with Automated Testing
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+  AWS_REGION: 'us-east-1'
+
+jobs:
+  # Pre-deployment validation
+  validate:
+    name: Validate Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+          cd ../infrastructure && npm ci
+
+      - name: Lint frontend
+        run: cd frontend && npm run lint
+
+      - name: Lint infrastructure
+        run: cd infrastructure && npm run lint
+
+      - name: Type check frontend
+        run: cd frontend && npm run type-check
+
+      - name: Type check infrastructure
+        run: cd infrastructure && npm run build
+
+  # Frontend testing
+  test-frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+
+      - name: Run unit tests
+        run: cd frontend && npm run test:unit
+
+      - name: Run component tests
+        run: cd frontend && npm run test:components
+
+      - name: Run integration tests
+        run: cd frontend && npm run test:integration
+
+      - name: Run performance tests
+        run: cd frontend && npm run test:performance
+
+      - name: Generate test coverage
+        run: cd frontend && npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./frontend/coverage/lcov.info
+          flags: frontend
+
+  # Infrastructure testing
+  test-infrastructure:
+    name: Infrastructure Tests
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd infrastructure && npm ci
+
+      - name: Run unit tests
+        run: cd infrastructure && npm run test:unit
+
+      - name: Run integration tests
+        run: cd infrastructure && npm run test:integration
+
+      - name: Run load tests
+        run: cd infrastructure && npm run test:load
+
+      - name: Run security tests
+        run: cd infrastructure && npm run test:security
+
+      - name: Generate test coverage
+        run: cd infrastructure && npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./infrastructure/coverage/lcov.info
+          flags: infrastructure
+
+  # End-to-end testing
+  test-e2e:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: [test-frontend, test-infrastructure]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+
+      - name: Build frontend
+        run: cd frontend && npm run build
+
+      - name: Start frontend preview
+        run: cd frontend && npm run preview &
+        
+      - name: Wait for frontend to be ready
+        run: npx wait-on http://localhost:4173
+
+      - name: Run E2E tests
+        run: cd frontend && npm run test:e2e
+
+      - name: Upload E2E test artifacts
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: e2e-screenshots
+          path: frontend/test-results/
+
+  # Security scanning
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      - name: Run npm audit
+        run: |
+          cd frontend && npm audit --audit-level=high
+          cd ../infrastructure && npm audit --audit-level=high
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          languages: typescript
+
+  # Build and validate deployment artifacts
+  build:
+    name: Build Deployment Artifacts
+    runs-on: ubuntu-latest
+    needs: [test-frontend, test-infrastructure, test-e2e, security-scan]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+          cd ../infrastructure && npm ci
+
+      - name: Build frontend
+        run: cd frontend && npm run build
+
+      - name: Validate frontend build
+        run: |
+          cd frontend
+          if [ ! -f "index.html" ]; then
+            echo "Error: index.html not found in frontend root"
+            exit 1
+          fi
+          if [ ! -d "build" ]; then
+            echo "Error: build directory not found"
+            exit 1
+          fi
+
+      - name: Build infrastructure
+        run: cd infrastructure && npm run build
+
+      - name: Synthesize CDK
+        run: cd infrastructure && npm run synth
+
+      - name: Validate CDK synthesis
+        run: |
+          cd infrastructure
+          if [ ! -d "cdk.out" ]; then
+            echo "Error: CDK synthesis failed"
+            exit 1
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: |
+            frontend/build/
+            infrastructure/cdk.out/
+
+  # Deploy to staging environment
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd infrastructure && npm ci
+
+      - name: Deploy infrastructure to staging
+        run: |
+          cd infrastructure
+          npm run deploy -- --context environment=staging
+
+      - name: Deploy frontend to staging
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+          aws s3 sync build/ s3://${{ secrets.STAGING_S3_BUCKET }} --delete
+
+      - name: Run staging smoke tests
+        run: npm run test:smoke -- --env=staging
+
+  # Deploy to production environment
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, deploy-staging]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd infrastructure && npm ci
+
+      - name: Deploy infrastructure to production
+        run: |
+          cd infrastructure
+          npm run deploy -- --context environment=production
+
+      - name: Deploy frontend to production (GitHub Pages)
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+          # GitHub Pages deployment is handled by separate workflow
+
+      - name: Run production smoke tests
+        run: npm run test:smoke -- --env=production
+
+      - name: Run production health checks
+        run: npm run test:health -- --env=production
+
+  # Post-deployment monitoring
+  post-deployment:
+    name: Post-Deployment Monitoring
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run performance monitoring
+        run: npm run test:performance-monitoring
+
+      - name: Check CloudWatch alarms
+        run: npm run check:cloudwatch-alarms
+
+      - name: Validate deployment metrics
+        run: npm run validate:deployment-metrics
+
+      - name: Send deployment notification
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: 'Production deployment successful! 🚀'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Send failure notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: 'Production deployment failed! 🚨'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Rollback capability
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: failure() && github.ref == 'refs/heads/main'
+    needs: [deploy-production, post-deployment]
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd infrastructure && npm ci
+
+      - name: Rollback infrastructure
+        run: |
+          cd infrastructure
+          npm run rollback -- --context environment=production
+
+      - name: Rollback frontend
+        run: |
+          # Rollback to previous GitHub Pages deployment
+          git checkout HEAD~1
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Verify rollback
+        run: npm run test:smoke -- --env=production
+
+      - name: Send rollback notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: "🔄 Production rollback completed",
+              attachments: [{
+                color: "warning",
+                fields: [{
+                  title: "Environment",
+                  value: "Production",
+                  short: true
+                }, {
+                  title: "Action",
+                  value: "Rollback",
+                  short: true
+                }]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

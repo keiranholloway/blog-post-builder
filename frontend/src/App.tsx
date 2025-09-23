@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { InputInterface } from './components/InputInterface';
 import { inputProcessingService } from './services/inputProcessingService';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
+import PWAUpdatePrompt from './components/PWAUpdatePrompt';
+import OfflineStatus from './components/OfflineStatus';
+import usePWA from './hooks/usePWA';
 import './App.css';
 
 // API URL from your deployed infrastructure
@@ -11,6 +15,9 @@ function App() {
   const [success, setSuccess] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<string>('');
+
+  // PWA functionality
+  const pwa = usePWA();
 
   // Mock user ID - in a real app, this would come from authentication
   const userId = 'demo-user-123';
@@ -93,6 +100,11 @@ function App() {
 
   return (
     <div className="App">
+      {/* PWA Components */}
+      <PWAInstallPrompt />
+      <PWAUpdatePrompt />
+      <OfflineStatus />
+
       {error && (
         <div className="App__notification App__notification--error">
           <span>{error}</span>
@@ -110,6 +122,13 @@ function App() {
       {processingStatus && (
         <div className="App__notification App__notification--info">
           <span>{processingStatus}</span>
+        </div>
+      )}
+
+      {/* Show sync queue status when offline */}
+      {!pwa.isOnline && pwa.queueLength > 0 && (
+        <div className="App__notification App__notification--warning">
+          <span>{pwa.queueLength} action(s) queued for when you're back online</span>
         </div>
       )}
 
