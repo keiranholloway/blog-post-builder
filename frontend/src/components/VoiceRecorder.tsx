@@ -14,6 +14,8 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const [duration, setDuration] = useState(0);
   const [audioLevel, setAudioLevel] = useState(0);
   const [isSupported, setIsSupported] = useState(true);
+  
+  const MIN_RECORDING_DURATION = 2; // Minimum 2 seconds
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -56,11 +58,14 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
   const startRecording = async () => {
     try {
+      // Request microphone access with better constraints
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          sampleRate: 44100
+          autoGainControl: true,
+          sampleRate: 44100,
+          channelCount: 1
         } 
       });
       
@@ -74,26 +79,70 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       source.connect(analyserRef.current);
       analyserRef.current.fftSize = 256;
 
-      // Set up MediaRecorder
+      // Determine the best MIME type for MediaRecorder
+      let mimeType = 'audio/webm;codecs=opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/webm';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'audio/mp4';
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'audio/wav';
+          }
+        }
+      }
+
+      console.log('Using MIME type:', mimeType);
+
+      // Set up MediaRecorder with timeslice for regular data events
       mediaRecorderRef.current = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: mimeType
       });
 
       mediaRecorderRef.current.ondataavailable = (event) => {
+        console.log('Data available:', event.data.size, 'bytes');
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
         }
       };
 
       mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        console.log('Recording stopped. Total chunks:', chunksRef.current.length);
+        const totalSize = chunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0);
+        console.log('Total audio size:', totalSize, 'bytes');
+        
+        // Check minimum duration
+        if (duration < MIN_RECORDING_DURATION) {
+          onError(`Recording too short. Please record for at least ${MIN_RECORDING_DURATION} seconds.`);
+          cleanup();
+          return;
+        }
+        
+        const audioBlob = new Blob(chunksRef.current, { type: mimeType });
+        console.log('Final blob size:', audioBlob.size, 'bytes');
+        
+        // Final validation
+        if (audioBlob.size < 1024) {
+          onError('Recording failed to capture audio data. Please try again.');
+          cleanup();
+          return;
+        }
+        
         onRecordingComplete(audioBlob, duration);
         cleanup();
       };
 
-      mediaRecorderRef.current.start();
+      mediaRecorderRef.current.onerror = (event) => {
+        console.error('MediaRecorder error:', event);
+        onError('Recording failed due to an error');
+        cleanup();
+      };
+
+      // Start recording with timeslice to get regular data chunks
+      mediaRecorderRef.current.start(1000); // Request data every 1 second
       setIsRecording(true);
       setDuration(0);
+
+      console.log('Recording started');
 
       // Start duration timer
       intervalRef.current = setInterval(() => {
@@ -105,16 +154,43 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
     } catch (error) {
       console.error('Error starting recording:', error);
-      onError('Failed to start recording. Please check microphone permissions.');
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          onError('Microphone access denied. Please allow microphone permissions and try again.');
+        } else if (error.name === 'NotFoundError') {
+          onError('No microphone found. Please connect a microphone and try again.');
+        } else {
+          onError(`Failed to start recording: ${error.message}`);
+        }
+      } else {
+        onError('Failed to start recording. Please check microphone permissions.');
+      }
       cleanup();
     }
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
+      console.log('Stopping recording...');
       setIsRecording(false);
       setAudioLevel(0);
+      
+      // Stop the MediaRecorder
+      if (mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
+      
+      // Stop the timer
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      
+      // Stop audio level monitoring
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
     }
   };
 
@@ -169,6 +245,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           className={`voice-recorder__button ${isRecording ? 'voice-recorder__button--recording' : ''}`}
           onClick={isRecording ? stopRecording : startRecording}
           disabled={!isSupported}
+          title={isRecording ? `Recording... (minimum ${MIN_RECORDING_DURATION}s)` : 'Start recording'}
         >
           {isRecording ? (
             <svg viewBox="0 0 24 24" fill="currentColor">

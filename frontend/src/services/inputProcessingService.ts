@@ -220,14 +220,14 @@ class InputProcessingService {
    * Validate audio file before processing
    */
   validateAudioFile(blob: Blob): { isValid: boolean; error?: string } {
-    // Check file size (1KB to 25MB)
-    const minSize = 1024; // 1KB
+    // Check file size (500 bytes to 25MB) - reduced minimum for better compatibility
+    const minSize = 500; // 500 bytes
     const maxSize = 25 * 1024 * 1024; // 25MB
 
     if (blob.size < minSize) {
       return {
         isValid: false,
-        error: `Audio file too small (${blob.size} bytes). Minimum size: ${minSize} bytes`,
+        error: `Audio file too small (${blob.size} bytes). Minimum size: ${minSize} bytes. Please record for at least 2-3 seconds.`,
       };
     }
 
