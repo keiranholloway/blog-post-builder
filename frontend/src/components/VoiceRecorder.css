@@ -2,189 +2,42 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20px;
-  margin: 1rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  gap: 20px;
+  padding: 20px;
 }
 
-.voice-recorder--unsupported {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+.record-button {
+  background: #4CAF50;
   color: white;
-  text-align: center;
+  border: none;
+  border-radius: 50px;
+  padding: 20px 40px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.voice-recorder__container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
+.record-button:hover {
+  background: #45a049;
+  transform: scale(1.05);
 }
 
-.voice-recorder__visualizer {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.record-button.recording {
+  background: #f44336;
+  animation: pulse 1s infinite;
 }
 
-.voice-recorder__level-indicator {
-  position: absolute;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transition: transform 0.1s ease-out;
-  backdrop-filter: blur(10px);
-}
-
-.voice-recorder__pulse-ring {
-  position: absolute;
-  width: 120px;
-  height: 120px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: 50%;
-  animation: pulse 2s infinite;
+.record-button.recording:hover {
+  background: #da190b;
 }
 
 @keyframes pulse {
-  0% {
-    transform: scale(0.8);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1.2);
-    opacity: 0;
-  }
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
-.voice-recorder__button {
-  position: relative;
-  z-index: 10;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: none;
-  background: white;
-  color: #667eea;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.voice-recorder__button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-.voice-recorder__button:active {
-  transform: scale(0.95);
-}
-
-.voice-recorder__button--recording {
-  background: #ff4757;
-  color: white;
-  animation: recording-pulse 1s infinite;
-}
-
-@keyframes recording-pulse {
-  0%, 100% {
-    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
-  }
-  50% {
-    box-shadow: 0 4px 25px rgba(255, 71, 87, 0.8);
-  }
-}
-
-.voice-recorder__button svg {
-  width: 32px;
-  height: 32px;
-}
-
-.voice-recorder__status {
-  color: white;
-  font-size: 1.1rem;
-  font-weight: 500;
-  text-align: center;
-  min-height: 1.5rem;
-}
-
-.voice-recorder__recording-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.voice-recorder__recording-dot {
-  width: 8px;
-  height: 8px;
-  background: #ff4757;
-  border-radius: 50%;
-  animation: blink 1s infinite;
-}
-
-@keyframes blink {
-  0%, 50% {
-    opacity: 1;
-  }
-  51%, 100% {
-    opacity: 0.3;
-  }
-}
-
-/* Mobile optimizations */
-@media (max-width: 768px) {
-  .voice-recorder {
-    margin: 0.5rem;
-    padding: 1.5rem;
-  }
-  
-  .voice-recorder__button {
-    width: 100px;
-    height: 100px;
-  }
-  
-  .voice-recorder__button svg {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .voice-recorder__visualizer {
-    width: 140px;
-    height: 140px;
-  }
-  
-  .voice-recorder__level-indicator {
-    width: 100px;
-    height: 100px;
-  }
-  
-  .voice-recorder__pulse-ring {
-    width: 140px;
-    height: 140px;
-  }
-}
-
-/* Touch device optimizations */
-@media (hover: none) and (pointer: coarse) {
-  .voice-recorder__button:hover {
-    transform: none;
-  }
-  
-  .voice-recorder__button:active {
-    transform: scale(0.95);
-    background: rgba(255, 255, 255, 0.9);
-  }
-  
-  .voice-recorder__button--recording:active {
-    background: rgba(255, 71, 87, 0.9);
-  }
+.status {
+  font-size: 16px;
+  color: #666;
 }
